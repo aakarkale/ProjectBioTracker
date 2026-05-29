@@ -40,6 +40,10 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- This function should only ever run as a trigger — never be callable via the
+-- REST RPC endpoint by anon/authenticated roles.
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+
 -- ---------------------------------------------------------------------------
 -- ingest_tokens: per-user secret for the Apple Health webhook
 -- Only the SHA-256 hash is stored; the plaintext is shown once on creation.
