@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #0a0a0b;
+  color: #e4e4e7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Optical-sizing for the Fraunces display serif */
+.font-serif {
+  font-optical-sizing: auto;
+}
+
+/* Tabular figures for all metric readouts */
+.tnum {
+  font-feature-settings: "tnum";
+}
+
+/* Subtle film-grain texture used across panels */
+.grain {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 0
+  );
+  background-size: 4px 4px;
+}
+
+/* Per-metric glows for KPI cards */
+.glow-heart {
+  box-shadow: 0 0 40px -10px rgba(239, 68, 68, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.glow-hrv {
+  box-shadow: 0 0 40px -10px rgba(167, 139, 250, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.glow-steps {
+  box-shadow: 0 0 40px -10px rgba(16, 185, 129, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.glow-cal {
+  box-shadow: 0 0 40px -10px rgba(249, 115, 22, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Recharts focus outlines off — we provide our own affordances */
+.recharts-surface:focus {
+  outline: none;
+}
