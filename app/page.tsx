@@ -1,8 +1,20 @@
 import { RecoveryDashboard } from "@/components/dashboard/RecoveryDashboard";
-import { SAMPLE_DAILY_METRICS } from "@/lib/health-data";
+import { getDailyMetrics } from "@/lib/queries";
+import { getUser } from "@/lib/auth";
 
-export default function Home() {
-  // First pass: static sample data. Swap for a Supabase query when the
-  // data layer lands (the DailyMetric[] contract stays the same).
-  return <RecoveryDashboard data={SAMPLE_DAILY_METRICS} />;
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [{ metrics, isSample }, user] = await Promise.all([
+    getDailyMetrics(),
+    getUser(),
+  ]);
+
+  return (
+    <RecoveryDashboard
+      data={metrics}
+      isSample={isSample}
+      userEmail={user?.email ?? null}
+    />
+  );
 }

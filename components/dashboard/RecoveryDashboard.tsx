@@ -12,6 +12,7 @@ import { CardioView } from "./charts/CardioView";
 import { ActivityView } from "./charts/ActivityView";
 import { WalkingView } from "./charts/WalkingView";
 import { IntensityView } from "./charts/IntensityView";
+import { AppNav } from "@/components/AppNav";
 
 type ViewId = "cardio" | "activity" | "walking" | "intensity";
 
@@ -24,7 +25,13 @@ const VIEWS: { id: ViewId; label: string; icon: typeof Heart }[] = [
 
 const RANGES = [30, 60, 90] as const;
 
-export function RecoveryDashboard({ data }: { data: DailyMetric[] }) {
+type Props = {
+  data: DailyMetric[];
+  isSample?: boolean;
+  userEmail?: string | null;
+};
+
+export function RecoveryDashboard({ data, isSample = false, userEmail = null }: Props) {
   const [view, setView] = useState<ViewId>("cardio");
   const [range, setRange] = useState<number>(90);
 
@@ -38,6 +45,24 @@ export function RecoveryDashboard({ data }: { data: DailyMetric[] }) {
     <div className="min-h-screen w-full bg-bg text-ink">
       <div className="grain min-h-screen">
         <div className="mx-auto w-full max-w-5xl">
+          <AppNav userEmail={userEmail} />
+
+          {isSample && (
+            <div className="border-b border-line bg-panel/40 px-5 py-2 sm:px-8">
+              <p className="font-mono text-xs text-mute">
+                {userEmail
+                  ? "Showing sample data — upload metrics or connect Apple Health to see your own."
+                  : "Demo mode — sample data. "}
+                {!userEmail && (
+                  <a href="/login" className="text-accent hover:underline">
+                    Sign in
+                  </a>
+                )}
+                {!userEmail && " to track your own."}
+              </p>
+            </div>
+          )}
+
           {/* Header */}
           <header className="border-b border-line px-5 pb-6 pt-8 sm:px-8">
             <div className="mb-2 flex items-start justify-between">
