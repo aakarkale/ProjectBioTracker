@@ -19,23 +19,38 @@ self-hostable stack.
 | Hosting        | Vercel                                             |
 | Edge/CDN       | Cloudflare                                         |
 
-## Status — Pass 1 (current)
+## Status
 
+**Pass 1 — Dashboard**
 - ✅ Responsive recovery dashboard (mobile + desktop), pixel-matched to the
   reference design: Fraunces display serif, JetBrains Mono metrics, film-grain
   panels, per-metric glows.
 - ✅ Four chart views — Heart (RHR vs HRV), Activity (steps), Walk HR, Exercise
   — with 30/60/90-day range switching and 7-day rolling trends.
 - ✅ KPI cards comparing first-14-days vs last-14-days with delta indicators.
-- ✅ Clean data contract (`DailyMetric`) so the static sample swaps cleanly for
-  a live Supabase query.
 
-### Planned next
+**Pass 2 — Supabase + auth + ingestion**
+- ✅ Postgres schema with row-level security (profiles, daily_metrics, reports,
+  biomarkers, ingest_tokens) + private `reports` storage bucket.
+- ✅ Passwordless magic-link auth (replaces Replit Auth); session middleware.
+- ✅ Dashboard reads live `daily_metrics`, with a demo-mode fallback to sample
+  data when signed out / unconfigured.
+- ✅ Apple Health ingestion: per-user token + webhook (`/api/ingest/metrics`)
+  accepting Health Auto Export / Apple Shortcuts JSON, plus manual CSV/JSON
+  upload. (HealthKit has no web API — see `DEPLOY.md`.)
 
-- Supabase schema + auth (replaces Neon + Replit Auth).
-- Apple Health export import + medical-report (PDF/CSV) parsing → biomarkers.
-- Anthropic-powered, personalised health recommendations.
-- Vercel deploy + Cloudflare in front.
+**Pass 3 — Anthropic**
+- ✅ Claude-powered biomarker extraction from uploaded PDF/image/CSV reports
+  (native document understanding + structured outputs + prompt caching).
+- ✅ Personalised recommendations folding biomarkers + recent activity together.
+- ✅ Biomarkers view with status filtering and on-demand AI recommendations.
+
+**Pass 4 — Deploy**
+- ✅ Vercel-ready (`vercel.json`); Cloudflare-in-front guide in `DEPLOY.md`.
+
+See [`DEPLOY.md`](./DEPLOY.md) for the full setup: creating the Supabase
+project, applying migrations, configuring auth + env vars, deploying to Vercel,
+and putting Cloudflare in front.
 
 ## Getting started
 
