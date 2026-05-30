@@ -6,7 +6,7 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import type { ReportRow } from "@/lib/queries";
 import { deleteReport, updateReport } from "@/app/reports/actions";
 
-function ReportItem({ report }: { report: ReportRow }) {
+function ReportItem({ report, readOnly }: { report: ReportRow; readOnly: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
@@ -104,6 +104,7 @@ function ReportItem({ report }: { report: ReportRow }) {
           {report.status === "pending" ? " · pending extraction" : ""}
         </p>
       </div>
+      {!readOnly && (
       <div className="flex shrink-0 items-center gap-1">
         {confirmDelete ? (
           <>
@@ -145,22 +146,30 @@ function ReportItem({ report }: { report: ReportRow }) {
           </>
         )}
       </div>
+      )}
     </div>
   );
 }
 
-export function ReportHistory({ reports }: { reports: ReportRow[] }) {
+export function ReportHistory({
+  reports,
+  readOnly = false,
+}: {
+  reports: ReportRow[];
+  readOnly?: boolean;
+}) {
   if (reports.length === 0) return null;
   return (
     <section className="mt-8">
       <h2 className="mb-1 font-serif text-xl font-medium">Lab report history</h2>
       <p className="mb-4 text-xs text-mute">
-        Rename a report, set its lab-test date, or delete it (which also removes
-        its biomarkers). Deleting cannot be undone.
+        {readOnly
+          ? "Reports behind this demo account, shown for reference."
+          : "Rename a report, set its lab-test date, or delete it (which also removes its biomarkers). Deleting cannot be undone."}
       </p>
       <div className="space-y-2">
         {reports.map((r) => (
-          <ReportItem key={r.id} report={r} />
+          <ReportItem key={r.id} report={r} readOnly={readOnly} />
         ))}
       </div>
     </section>

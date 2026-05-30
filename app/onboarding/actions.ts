@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isDemoEmail } from "@/lib/demo";
 
 export type ProfileInput = {
   full_name?: string | null;
@@ -18,6 +19,8 @@ async function persist(patch: Record<string, unknown>) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false as const, error: "Not signed in" };
+  // Demo account is view-only — silently skip persistence.
+  if (isDemoEmail(user.email)) return { ok: true as const };
 
   // Upsert so it works whether or not the profile row already exists.
   const { error } = await supabase

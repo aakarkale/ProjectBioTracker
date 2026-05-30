@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isDemoEmail } from "@/lib/demo";
 
 type UpdateInput = { title?: string; reportDate?: string | null };
 
@@ -19,6 +20,7 @@ export async function updateReport(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Not signed in" };
+  if (isDemoEmail(user.email)) return { ok: false, error: "The demo is view-only." };
 
   const patch: Record<string, unknown> = {};
   if (input.title !== undefined) patch.title = input.title.trim() || null;
@@ -54,6 +56,7 @@ export async function deleteReport(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Not signed in" };
+  if (isDemoEmail(user.email)) return { ok: false, error: "The demo is view-only." };
 
   // Best-effort remove the stored file first.
   const { data: row } = await supabase
