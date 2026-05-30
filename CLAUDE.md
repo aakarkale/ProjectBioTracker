@@ -103,6 +103,10 @@ upload/dashboard work; no service-role key → webhook 503 but manual upload wor
 - Work on feature branches → open a PR into `main` → Vercel posts a **preview
   deploy** on the PR → merge → production deploy.
 - After pushing a branch, open a **draft PR** into `main`.
+- **Always share the Vercel preview deploy URL** when opening or reporting on a
+  PR. It's in the Vercel bot's PR comment (the "Preview" link); the branch
+  alias looks like
+  `https://bio-tracker-git-<branch-slug>-aakars-projects-4b36bf13.vercel.app`.
 - Auth note: production magic links require the deployed URL in Supabase →
   Authentication → URL Configuration (Site URL + Redirect URLs). Add
   `http://localhost:3000` there only for local login.
