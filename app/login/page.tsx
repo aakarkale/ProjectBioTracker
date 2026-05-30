@@ -9,6 +9,7 @@ function LoginForm() {
   const params = useSearchParams();
   const next = params.get("next") ?? "/";
   const linkError = params.get("error") === "link";
+  const demoError = params.get("error") === "demo";
 
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
@@ -95,8 +96,27 @@ function LoginForm() {
           </form>
         )}
 
+        <div className="mt-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-line" />
+          <span className="font-mono text-xs text-mute">or</span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+
+        <a
+          href="/demo"
+          className="mt-4 block w-full rounded-xl border border-line py-3 text-center text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent"
+        >
+          View live demo
+        </a>
+        {demoError && (
+          <p className="mt-2 font-mono text-xs text-heart">
+            Demo isn&apos;t available right now. Try the magic link above.
+          </p>
+        )}
+
         <p className="mt-6 font-mono text-xs text-mute">
-          We&apos;ll email you a one-time link. No password to remember.
+          We&apos;ll email you a one-time link. No password to remember. The demo
+          uses a shared sample account.
         </p>
       </div>
     </main>
