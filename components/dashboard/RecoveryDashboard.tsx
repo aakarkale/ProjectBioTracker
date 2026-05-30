@@ -32,6 +32,8 @@ type Props = {
   userEmail?: string | null;
   /** "landing" = generic public demo; "app" = personalised signed-in view. */
   variant?: "landing" | "app";
+  /** First name for the signed-in greeting (app variant). */
+  displayName?: string;
 };
 
 export function RecoveryDashboard({
@@ -39,6 +41,7 @@ export function RecoveryDashboard({
   isSample = false,
   userEmail = null,
   variant = "app",
+  displayName = "My",
 }: Props) {
   const [view, setView] = useState<ViewId>("cardio");
   const [range, setRange] = useState<number>(90);
@@ -80,12 +83,8 @@ export function RecoveryDashboard({
                   {DATA_WINDOW.label}
                 </p>
                 <h1 className="mt-2 font-serif text-3xl font-medium leading-tight sm:text-4xl">
-                  {isLanding ? "Health " : "Aakar’s Recovery"}
-                  <span
-                    className={`font-light italic text-accent${isLanding ? "" : " block"}`}
-                  >
-                    {isLanding ? "Dashboard." : "dashboard."}
-                  </span>
+                  {isLanding ? "Health " : `${displayName}’s Health `}
+                  <span className="font-light italic text-accent">Dashboard.</span>
                 </h1>
               </div>
               <div className="text-right">

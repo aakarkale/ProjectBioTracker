@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type ProfileInput = {
+  full_name?: string | null;
   date_of_birth?: string | null;
   sex?: string | null;
   height_cm?: number | null;
@@ -29,6 +30,7 @@ async function persist(patch: Record<string, unknown>) {
 /** Save the onboarding profile and mark the user as onboarded. */
 export async function saveProfile(input: ProfileInput): Promise<void> {
   await persist({
+    full_name: input.full_name || null,
     date_of_birth: input.date_of_birth || null,
     sex: input.sex || null,
     height_cm: input.height_cm ?? null,

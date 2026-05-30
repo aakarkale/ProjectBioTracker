@@ -11,6 +11,7 @@ export default async function OnboardingPage() {
   if (!user) redirect("/login?next=/onboarding");
 
   const profile = (await getProfile()) ?? {
+    full_name: null,
     date_of_birth: null,
     sex: null,
     height_cm: null,
