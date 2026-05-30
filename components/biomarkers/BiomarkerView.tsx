@@ -2,9 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
-import type { Biomarker, ReportRow } from "@/lib/queries";
+import type { Biomarker } from "@/lib/queries";
 import { BiomarkerModal, type BiomarkerGroup } from "./BiomarkerModal";
-import { ReportHistory } from "./ReportHistory";
 
 const STATUS_COLORS: Record<Biomarker["status"], string> = {
   normal: "#10b981",
@@ -67,11 +66,9 @@ function buildGroups(biomarkers: Biomarker[]): BiomarkerGroup[] {
 
 export function BiomarkerView({
   biomarkers,
-  reports,
   aiEnabled,
 }: {
   biomarkers: Biomarker[];
-  reports: ReportRow[];
   aiEnabled: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
@@ -110,20 +107,18 @@ export function BiomarkerView({
 
   if (groups.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-line bg-panel p-8 text-center">
-          <p className="text-sm text-ink">No biomarkers yet.</p>
-          <p className="mt-2 text-xs text-mute">
-            Upload a medical report and Claude will extract your lab values here.
-          </p>
-          <a
-            href="/upload"
-            className="mt-4 inline-block rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-bg"
-          >
-            Upload a report
-          </a>
-        </div>
-        <ReportHistory reports={reports} />
+      <div className="rounded-2xl border border-line bg-panel p-8 text-center">
+        <p className="text-sm text-ink">No biomarkers yet.</p>
+        <p className="mt-2 text-xs text-mute">
+          Upload a medical report and Claude will extract your lab values here.
+          Manage uploaded reports on the Upload page.
+        </p>
+        <a
+          href="/upload"
+          className="mt-4 inline-block rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-bg"
+        >
+          Upload a report
+        </a>
       </div>
     );
   }
@@ -236,8 +231,6 @@ export function BiomarkerView({
           );
         })}
       </div>
-
-      <ReportHistory reports={reports} />
 
       {selected && (
         <BiomarkerModal
