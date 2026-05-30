@@ -154,7 +154,7 @@ export function BiomarkerInsightDemo() {
       <p className="mb-4 text-xs text-mute">
         Lab values from the latest report, flagged by range.{" "}
         <span className="text-hrv">
-          {canHover ? "Hover" : "Scroll"} a tile for an AI insight.
+          {canHover ? "Hover" : "Tap"} a tile for an AI insight.
         </span>
       </p>
 
@@ -169,9 +169,19 @@ export function BiomarkerInsightDemo() {
               ref={(el) => {
                 refs.current[t.id] = el;
               }}
+              role="button"
+              tabIndex={0}
+              aria-expanded={isActive}
               onMouseEnter={() => canHover && setActive(t.id)}
               onMouseLeave={() => canHover && setActive(null)}
-              className="relative"
+              onClick={() => setActive((cur) => (cur === t.id ? null : t.id))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActive((cur) => (cur === t.id ? null : t.id));
+                }
+              }}
+              className="relative cursor-pointer outline-none"
             >
               {/* AI insight tooltip */}
               <div
