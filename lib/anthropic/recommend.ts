@@ -77,9 +77,14 @@ function summarise(biomarkers: Biomarker[], kpi: KpiSummary): string {
  */
 export async function generateRecommendations(
   biomarkers: Biomarker[],
-  kpi: KpiSummary
+  kpi: KpiSummary,
+  profileDescription = ""
 ): Promise<Recommendation[]> {
   const client = getAnthropic();
+
+  const userContent =
+    (profileDescription ? `Person: ${profileDescription}\n\n` : "") +
+    summarise(biomarkers, kpi);
 
   const response = await client.messages.create({
     model: MODEL,
@@ -98,7 +103,7 @@ export async function generateRecommendations(
     messages: [
       {
         role: "user",
-        content: summarise(biomarkers, kpi),
+        content: userContent,
       },
     ],
   });

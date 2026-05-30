@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isAnthropicConfigured } from "@/lib/anthropic/client";
-import { extractBiomarkers } from "@/lib/anthropic/extract";
+import { extractBiomarkers, type ExtractedBiomarker } from "@/lib/anthropic/extract";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -39,8 +39,25 @@ export async function POST(request: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const storagePath = `${user.id}/${randomUUID()}-${file.name}`;
+  const contentHash = createHash("sha256").update(buffer).digest("hex");
 
+  // Never double-count: if this exact file was already uploaded, no-op.
+  const { data: existing } = await supabase
+    .from("reports")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("content_hash", contentHash)
+    .maybeSingle();
+  if (existing) {
+    return NextResponse.json({
+      ok: true,
+      duplicate: true,
+      reportId: existing.id,
+      message: "This report was already uploaded — skipped to avoid duplicates.",
+    });
+  }
+
+  const storagePath = `${user.id}/${randomUUID()}-${file.name}`;
   const { error: uploadError } = await supabase.storage
     .from("reports")
     .upload(storagePath, buffer, {
@@ -56,8 +73,10 @@ export async function POST(request: NextRequest) {
     .insert({
       user_id: user.id,
       file_name: file.name,
+      title: file.name,
       storage_path: storagePath,
       mime_type: file.type || null,
+      content_hash: contentHash,
       status: isAnthropicConfigured ? "processing" : "pending",
     })
     .select("id")
@@ -82,8 +101,18 @@ export async function POST(request: NextRequest) {
   try {
     const result = await extractBiomarkers(buffer, file.type, file.name);
 
-    if (result.biomarkers.length > 0) {
-      const rows = result.biomarkers.map((b) => ({
+    // Dedupe within the report by biomarker name (keep first occurrence).
+    const seen = new Set<string>();
+    const unique: ExtractedBiomarker[] = [];
+    for (const b of result.biomarkers) {
+      const key = b.name.trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(b);
+    }
+
+    if (unique.length > 0) {
+      const rows = unique.map((b) => ({
         user_id: user.id,
         report_id: report.id,
         name: b.name,
@@ -109,7 +138,9 @@ export async function POST(request: NextRequest) {
       reportId: report.id,
       status: "done",
       collected_on: result.collected_on,
-      count: result.biomarkers.length,
+      // No definitive lab-test date found — the UI should ask the user.
+      needsDate: !result.collected_on,
+      count: unique.length,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Extraction failed";

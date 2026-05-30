@@ -102,3 +102,46 @@ export async function getBiomarkers(): Promise<Biomarker[]> {
 
   return (data as Biomarker[]) ?? [];
 }
+
+export type ReportRow = {
+  id: string;
+  title: string | null;
+  file_name: string;
+  collected_on: string | null; // the lab test (report) date
+  status: "pending" | "processing" | "done" | "error";
+  error: string | null;
+  created_at: string;
+  biomarker_count: number;
+};
+
+/** Uploaded lab reports for the signed-in user, newest first. */
+export async function getReports(): Promise<ReportRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("reports")
+    .select(
+      "id, title, file_name, collected_on, status, error, created_at, biomarkers(count)"
+    )
+    .order("created_at", { ascending: false });
+
+  type Raw = Omit<ReportRow, "biomarker_count"> & {
+    biomarkers: { count: number }[] | null;
+  };
+
+  return ((data as Raw[]) ?? []).map((r) => ({
+    id: r.id,
+    title: r.title,
+    file_name: r.file_name,
+    collected_on: r.collected_on,
+    status: r.status,
+    error: r.error,
+    created_at: r.created_at,
+    biomarker_count: r.biomarkers?.[0]?.count ?? 0,
+  }));
+}
