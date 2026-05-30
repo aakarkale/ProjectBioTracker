@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { DEMO_EMAIL } from "@/lib/demo";
 
 export type Profile = {
   full_name: string | null;
@@ -10,9 +11,6 @@ export type Profile = {
   goals: string | null;
   onboarded: boolean;
 };
-
-// Keep in sync with lib/demo-seed.ts
-const DEMO_EMAIL = "demo@biotracker.app";
 
 /** The signed-in user's health profile, or null if signed out / unconfigured. */
 export async function getProfile(): Promise<Profile | null> {

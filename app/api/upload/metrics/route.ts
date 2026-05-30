@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isDemoEmail } from "@/lib/demo";
 import { parseMetricsFile } from "@/lib/parse/metrics-file";
 import { upsertDailyMetrics } from "@/lib/metrics-write";
 
@@ -18,6 +19,9 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+  if (isDemoEmail(user.email)) {
+    return NextResponse.json({ error: "The demo is view-only." }, { status: 403 });
   }
 
   const form = await request.formData();

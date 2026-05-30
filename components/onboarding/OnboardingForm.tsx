@@ -14,7 +14,13 @@ const GOAL_OPTIONS = [
   "Longevity / general health",
 ];
 
-export function OnboardingForm({ profile }: { profile: Profile }) {
+export function OnboardingForm({
+  profile,
+  readOnly = false,
+}: {
+  profile: Profile;
+  readOnly?: boolean;
+}) {
   const [pending, startTransition] = useTransition();
   const [name, setName] = useState(profile.full_name ?? "");
   const [dob, setDob] = useState(profile.date_of_birth ?? "");
@@ -57,8 +63,9 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
+            disabled={readOnly}
             placeholder="e.g. Aakar"
-            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink outline-none placeholder:text-mute focus:border-accent"
+            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink outline-none placeholder:text-mute focus:border-accent disabled:opacity-60"
           />
           <span className="mt-1 block font-mono text-[10px] text-mute">
             Used to greet you — e.g. &ldquo;Aakar&apos;s Health Dashboard&rdquo;.
@@ -73,7 +80,8 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
             type="date"
             value={dob}
             onChange={(e) => setDob(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 font-mono text-sm text-ink outline-none focus:border-accent"
+            disabled={readOnly}
+            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 font-mono text-sm text-ink outline-none focus:border-accent disabled:opacity-60"
           />
         </label>
 
@@ -83,7 +91,13 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
           </span>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {SEXES.map((s) => (
-              <button key={s} type="button" onClick={() => setSex(s)} className={chip(sex === s)}>
+              <button
+                key={s}
+                type="button"
+                disabled={readOnly}
+                onClick={() => setSex(s)}
+                className={chip(sex === s)}
+              >
                 {s}
               </button>
             ))}
@@ -99,8 +113,9 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
             inputMode="decimal"
             value={height}
             onChange={(e) => setHeight(e.target.value)}
+            disabled={readOnly}
             placeholder="175"
-            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 font-mono text-sm text-ink outline-none placeholder:text-mute focus:border-accent"
+            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 font-mono text-sm text-ink outline-none placeholder:text-mute focus:border-accent disabled:opacity-60"
           />
         </label>
 
@@ -113,8 +128,9 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
             inputMode="decimal"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
+            disabled={readOnly}
             placeholder="78"
-            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 font-mono text-sm text-ink outline-none placeholder:text-mute focus:border-accent"
+            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 font-mono text-sm text-ink outline-none placeholder:text-mute focus:border-accent disabled:opacity-60"
           />
         </label>
       </div>
@@ -125,7 +141,13 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
         </span>
         <div className="mt-1.5 flex flex-wrap gap-2">
           {GOAL_OPTIONS.map((g) => (
-            <button key={g} type="button" onClick={() => toggleGoal(g)} className={chip(goals.includes(g))}>
+            <button
+              key={g}
+              type="button"
+              disabled={readOnly}
+              onClick={() => toggleGoal(g)}
+              className={chip(goals.includes(g))}
+            >
               {g}
             </button>
           ))}
@@ -133,33 +155,38 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
+          disabled={readOnly}
           placeholder="Anything else we should know? (optional)"
-          className="mt-3 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink outline-none placeholder:text-mute focus:border-accent"
+          className="mt-3 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink outline-none placeholder:text-mute focus:border-accent disabled:opacity-60"
         />
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={submit}
-          disabled={pending}
-          className="rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {pending ? "Saving…" : "Save & continue"}
-        </button>
-        <button
-          type="button"
-          onClick={() => startTransition(() => skipOnboarding())}
-          disabled={pending}
-          className="font-mono text-xs text-mute transition-colors hover:text-ink"
-        >
-          Skip for now
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={submit}
+            disabled={pending}
+            className="rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {pending ? "Saving…" : "Save & continue"}
+          </button>
+          <button
+            type="button"
+            onClick={() => startTransition(() => skipOnboarding())}
+            disabled={pending}
+            className="font-mono text-xs text-mute transition-colors hover:text-ink"
+          >
+            Skip for now
+          </button>
+        </div>
+      )}
 
-      <p className="font-mono text-xs text-mute">
-        Used only to personalise your insights · editable anytime · never shared.
-      </p>
+      {!readOnly && (
+        <p className="font-mono text-xs text-mute">
+          Used only to personalise your insights · editable anytime · never shared.
+        </p>
+      )}
     </div>
   );
 }

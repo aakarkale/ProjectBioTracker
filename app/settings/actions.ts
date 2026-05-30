@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isDemoEmail } from "@/lib/demo";
 import { generateToken, hashToken } from "@/lib/ingest";
 
 /** Create a new ingest token; returns the plaintext ONCE (never stored). */
@@ -13,6 +14,7 @@ export async function createIngestToken(): Promise<
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Not signed in" };
+  if (isDemoEmail(user.email)) return { ok: false, error: "The demo is view-only." };
 
   const token = generateToken();
   const { error } = await supabase.from("ingest_tokens").insert({
@@ -32,7 +34,7 @@ export async function revokeIngestToken(id: string): Promise<void> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user || isDemoEmail(user.email)) return;
 
   await supabase
     .from("ingest_tokens")

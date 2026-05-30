@@ -4,6 +4,8 @@ import { TokenManager, type TokenRow } from "@/components/settings/TokenManager"
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { getProfile } from "@/lib/profile";
+import { isDemoEmail } from "@/lib/demo";
+import { DemoNotice } from "@/components/DemoNotice";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,7 @@ export default async function SettingsPage() {
   const user = await getUser();
   const profile = await getProfile();
   if (user && profile && !profile.onboarded) redirect("/onboarding");
+  const isDemo = isDemoEmail(user?.email);
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -27,7 +30,18 @@ export default async function SettingsPage() {
       title="Apple Health"
       intro="A website can't read Apple Health directly — HealthKit lives on your device. Generate a token below and point the Health Auto Export app (or an Apple Shortcut) at your personal webhook to sync metrics automatically."
     >
-      <TokenManager tokens={tokens} />
+      {isDemo ? (
+        <DemoNotice>
+          <span className="text-ink">You&apos;re exploring the demo.</span>{" "}
+          Connecting Apple Health is disabled here.{" "}
+          <a href="/login" className="text-hrv hover:underline">
+            Sign in
+          </a>{" "}
+          to generate your own sync token.
+        </DemoNotice>
+      ) : (
+        <TokenManager tokens={tokens} />
+      )}
     </PageShell>
   );
 }

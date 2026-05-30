@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SAMPLE_DAILY_METRICS } from "@/lib/health-data";
+import { DEMO_EMAIL } from "@/lib/demo";
 
-/** Shared demo account. Auth is minted via the service-role admin API. */
-export const DEMO_EMAIL = "demo@biotracker.app";
+export { DEMO_EMAIL };
 
 type Marker = {
   name: string;

@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isAnthropicConfigured } from "@/lib/anthropic/client";
+import { isDemoEmail } from "@/lib/demo";
 import { extractBiomarkers, type ExtractedBiomarker } from "@/lib/anthropic/extract";
 
 export const runtime = "nodejs";
@@ -22,6 +23,9 @@ export async function POST(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (isDemoEmail(user.email)) {
+    return NextResponse.json({ error: "The demo is view-only." }, { status: 403 });
+  }
 
   const form = await request.formData();
   const file = form.get("file");
