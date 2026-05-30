@@ -14,6 +14,16 @@ import { WalkingView } from "./charts/WalkingView";
 import { IntensityView } from "./charts/IntensityView";
 import { AppNav } from "@/components/AppNav";
 import { BiomarkerInsightDemo } from "@/components/landing/BiomarkerInsightDemo";
+import { DemoTip } from "@/components/DemoTip";
+
+const KPI_TIPS = {
+  rhr: "Resting heart rate. Lower usually means better cardiovascular recovery; it climbs with illness, stress, or poor sleep.",
+  hrv: "Heart-rate variability. Higher generally signals better recovery and a well-balanced nervous system.",
+  steps: "Daily steps — a simple measure of overall movement. 8k+/day is a common baseline.",
+  exer: "Apple's exercise minutes: time spent at brisk effort or above. 30/day is the ring goal.",
+  chart:
+    "These lines smooth your daily readings into a 7-day trend, so you can see the real direction beneath day-to-day noise.",
+} as const;
 
 type ViewId = "cardio" | "activity" | "walking" | "intensity";
 
@@ -34,6 +44,8 @@ type Props = {
   variant?: "landing" | "app";
   /** First name for the signed-in greeting (app variant). */
   displayName?: string;
+  /** Demo account → show guided "what this means" tooltips. */
+  demo?: boolean;
 };
 
 export function RecoveryDashboard({
@@ -42,6 +54,7 @@ export function RecoveryDashboard({
   userEmail = null,
   variant = "app",
   displayName = "My",
+  demo = false,
 }: Props) {
   const [view, setView] = useState<ViewId>("cardio");
   const [range, setRange] = useState<number>(90);
@@ -105,42 +118,50 @@ export function RecoveryDashboard({
 
           {/* KPI grid */}
           <section className="grid grid-cols-2 gap-3 px-5 py-6 sm:px-8 lg:grid-cols-4">
-            <KpiCard
-              label="Resting HR"
-              data={kpi.rhr}
-              unit="bpm"
-              better="down"
-              color={palette.heart}
-              glow="glow-heart"
-              context="Target <65"
-            />
-            <KpiCard
-              label="HRV"
-              data={kpi.hrv}
-              unit="ms"
-              better="up"
-              color={palette.hrv}
-              glow="glow-hrv"
-              context="Higher = recovered"
-            />
-            <KpiCard
-              label="Steps / day"
-              data={kpi.steps}
-              unit=""
-              better="up"
-              color={palette.steps}
-              glow="glow-steps"
-              context="Aim 8k+"
-            />
-            <KpiCard
-              label="Exercise min"
-              data={kpi.exer}
-              unit="/day"
-              better="up"
-              color={palette.cal}
-              glow="glow-cal"
-              context="Aim 30+"
-            />
+            <DemoTip tip={KPI_TIPS.rhr} enabled={demo}>
+              <KpiCard
+                label="Resting HR"
+                data={kpi.rhr}
+                unit="bpm"
+                better="down"
+                color={palette.heart}
+                glow="glow-heart"
+                context="Target <65"
+              />
+            </DemoTip>
+            <DemoTip tip={KPI_TIPS.hrv} enabled={demo}>
+              <KpiCard
+                label="HRV"
+                data={kpi.hrv}
+                unit="ms"
+                better="up"
+                color={palette.hrv}
+                glow="glow-hrv"
+                context="Higher = recovered"
+              />
+            </DemoTip>
+            <DemoTip tip={KPI_TIPS.steps} enabled={demo}>
+              <KpiCard
+                label="Steps / day"
+                data={kpi.steps}
+                unit=""
+                better="up"
+                color={palette.steps}
+                glow="glow-steps"
+                context="Aim 8k+"
+              />
+            </DemoTip>
+            <DemoTip tip={KPI_TIPS.exer} enabled={demo}>
+              <KpiCard
+                label="Exercise min"
+                data={kpi.exer}
+                unit="/day"
+                better="up"
+                color={palette.cal}
+                glow="glow-cal"
+                context="Aim 30+"
+              />
+            </DemoTip>
           </section>
 
           {/* View switcher */}
@@ -193,12 +214,14 @@ export function RecoveryDashboard({
 
           {/* Main chart */}
           <section className="px-5 pb-6 sm:px-8">
+            <DemoTip tip={KPI_TIPS.chart} enabled={demo}>
             <div className="rounded-2xl border border-line bg-panel p-4 pt-5 sm:p-6">
               {view === "cardio" && <CardioView data={chartData} />}
               {view === "activity" && <ActivityView data={chartData} />}
               {view === "walking" && <WalkingView data={chartData} />}
               {view === "intensity" && <IntensityView data={chartData} />}
             </div>
+            </DemoTip>
           </section>
 
           {/* Landing: biomarker tiles with AI-insight tooltips.
