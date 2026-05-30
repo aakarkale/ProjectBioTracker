@@ -15,7 +15,7 @@ export default async function UploadPage() {
       userEmail={user?.email ?? null}
       eyebrow="Import"
       title="Upload data"
-      intro="Bring in Apple Health daily metrics or a medical report. Everything is private to your account."
+      intro="Bring in Apple Health daily metrics or medical reports — drop several files at once. Everything is private to your account."
     >
       <Uploader />
     </PageShell>
