@@ -1,4 +1,5 @@
 import { RecoveryDashboard } from "@/components/dashboard/RecoveryDashboard";
+import { EmptyDashboard } from "@/components/dashboard/EmptyDashboard";
 import { getDailyMetrics } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
 
@@ -9,6 +10,11 @@ export default async function Home() {
     getDailyMetrics(),
     getUser(),
   ]);
+
+  // Signed-in user with no data yet → onboarding, never sample data.
+  if (user && metrics.length === 0) {
+    return <EmptyDashboard userEmail={user.email ?? null} />;
+  }
 
   return (
     <RecoveryDashboard

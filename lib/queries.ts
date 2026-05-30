@@ -39,9 +39,12 @@ export type DailyMetricsResult = {
 };
 
 /**
- * Daily metrics for the signed-in user, oldest-first. Falls back to the
- * bundled sample when Supabase isn't configured, the user is signed out, or
- * they have no data yet — so the dashboard always has something to render.
+ * Daily metrics for the signed-in user, oldest-first.
+ *
+ * Sample data is only for **signed-out** visitors (the public landing/demo).
+ * A signed-in user always gets their own data — an empty array if they have
+ * none yet (so the dashboard can show an onboarding state instead of fake
+ * numbers).
  */
 export async function getDailyMetrics(): Promise<DailyMetricsResult> {
   if (!isSupabaseConfigured) {
@@ -61,8 +64,9 @@ export async function getDailyMetrics(): Promise<DailyMetricsResult> {
     )
     .order("day", { ascending: true });
 
-  if (error || !data || data.length === 0) {
-    return { metrics: SAMPLE_DAILY_METRICS, isSample: true };
+  // Signed in: return real data only — never fall back to sample.
+  if (error || !data) {
+    return { metrics: [], isSample: false };
   }
 
   return { metrics: (data as DailyMetricRow[]).map(mapRow), isSample: false };
