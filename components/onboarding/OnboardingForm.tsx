@@ -16,6 +16,7 @@ const GOAL_OPTIONS = [
 
 export function OnboardingForm({ profile }: { profile: Profile }) {
   const [pending, startTransition] = useTransition();
+  const [name, setName] = useState(profile.full_name ?? "");
   const [dob, setDob] = useState(profile.date_of_birth ?? "");
   const [sex, setSex] = useState(profile.sex ?? "");
   const [height, setHeight] = useState(profile.height_cm?.toString() ?? "");
@@ -31,6 +32,7 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
     const goalsText = [goals.join(", "), note.trim()].filter(Boolean).join(" — ");
     startTransition(() =>
       saveProfile({
+        full_name: name.trim() || null,
         date_of_birth: dob || null,
         sex: sex || null,
         height_cm: height ? Number(height) : null,
@@ -48,6 +50,21 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="block sm:col-span-2">
+          <span className="font-mono text-xs uppercase tracking-wider text-mute">
+            First name
+          </span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Aakar"
+            className="mt-1.5 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink outline-none placeholder:text-mute focus:border-accent"
+          />
+          <span className="mt-1 block font-mono text-[10px] text-mute">
+            Used to greet you — e.g. &ldquo;Aakar&apos;s Health Dashboard&rdquo;.
+          </span>
+        </label>
+
         <label className="block">
           <span className="font-mono text-xs uppercase tracking-wider text-mute">
             Date of birth

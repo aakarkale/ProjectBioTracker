@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export type Profile = {
+  full_name: string | null;
   date_of_birth: string | null;
   sex: string | null;
   height_cm: number | null;
@@ -9,6 +10,9 @@ export type Profile = {
   goals: string | null;
   onboarded: boolean;
 };
+
+// Keep in sync with lib/demo-seed.ts
+const DEMO_EMAIL = "demo@biotracker.app";
 
 /** The signed-in user's health profile, or null if signed out / unconfigured. */
 export async function getProfile(): Promise<Profile | null> {
@@ -21,11 +25,12 @@ export async function getProfile(): Promise<Profile | null> {
 
   const { data } = await supabase
     .from("profiles")
-    .select("date_of_birth, sex, height_cm, weight_kg, goals, onboarded")
+    .select("full_name, date_of_birth, sex, height_cm, weight_kg, goals, onboarded")
     .eq("id", user.id)
     .maybeSingle();
 
   return (data as Profile) ?? {
+    full_name: null,
     date_of_birth: null,
     sex: null,
     height_cm: null,
@@ -33,6 +38,22 @@ export async function getProfile(): Promise<Profile | null> {
     goals: null,
     onboarded: false,
   };
+}
+
+/**
+ * The name to greet the user by. "Demo" for the demo account; the first token
+ * of their profile name if set; otherwise a best-effort guess from the email.
+ */
+export function firstName(
+  profile: Profile | null,
+  email: string | null | undefined
+): string {
+  if (email && email.toLowerCase() === DEMO_EMAIL) return "Demo";
+  const full = profile?.full_name?.trim();
+  if (full) return full.split(/\s+/)[0];
+  const local = (email ?? "").split("@")[0].replace(/[._-]+/g, " ").trim();
+  if (local) return local.charAt(0).toUpperCase() + local.slice(1);
+  return "My";
 }
 
 /** Whole years between a YYYY-MM-DD date of birth and today. */

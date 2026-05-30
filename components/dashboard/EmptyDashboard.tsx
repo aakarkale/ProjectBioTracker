@@ -40,7 +40,13 @@ const STEPS = [
 ];
 
 /** Onboarding state shown to a signed-in user who has no data yet. */
-export function EmptyDashboard({ userEmail }: { userEmail: string | null }) {
+export function EmptyDashboard({
+  userEmail,
+  displayName = "My",
+}: {
+  userEmail: string | null;
+  displayName?: string;
+}) {
   return (
     <div className="min-h-screen w-full bg-bg text-ink">
       <div className="grain min-h-screen">
@@ -53,8 +59,8 @@ export function EmptyDashboard({ userEmail }: { userEmail: string | null }) {
               Welcome
             </p>
             <h1 className="mt-2 font-serif text-3xl font-medium leading-tight sm:text-4xl">
-              Your recovery{" "}
-              <span className="font-light italic text-accent">dashboard.</span>
+              {displayName}&rsquo;s Health{" "}
+              <span className="font-light italic text-accent">Dashboard.</span>
             </h1>
             <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-mute">
               It&apos;s empty for now. Connect Apple Health or upload your data
