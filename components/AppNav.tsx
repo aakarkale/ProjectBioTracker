@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { UserMenu } from "./UserMenu";
 
 const LINKS = [
   { href: "/", label: "Dashboard" },
@@ -46,19 +47,7 @@ export function AppNav({ userEmail }: { userEmail: string | null }) {
 
       <div className="flex shrink-0 items-center gap-3">
         {userEmail ? (
-          <>
-            <span className="hidden font-mono text-xs text-mute sm:inline">
-              {userEmail}
-            </span>
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="rounded-full border border-line px-3 py-1 font-mono text-xs text-mute transition-colors hover:text-ink"
-              >
-                Sign out
-              </button>
-            </form>
-          </>
+          <UserMenu email={userEmail} />
         ) : (
           <Link
             href="/login"
