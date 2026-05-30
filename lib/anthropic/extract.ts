@@ -24,7 +24,7 @@ Rules:
 - "reference_low" / "reference_high" come from the printed reference range. If the range is one-sided (e.g. "<150"), set the missing bound to null. If absent, use null for both.
 - "status": "normal" if within range; "borderline" if just outside or flagged borderline; "critical" if substantially out of range or flagged H/L/critical; "unknown" if you cannot tell.
 - "category" is a short group label when evident (e.g. "Lipids", "Liver", "Thyroid", "Metabolic", "Kidney", "Vitamins", "Inflammation"), else null.
-- "collected_on" is the specimen collection date in ISO YYYY-MM-DD if present anywhere in the document, else null.
+- "collected_on" is the date the LAB TEST was performed — the specimen collection / draw date. Look for labels like "Collected on", "Specimen collected", "Collection date", "Drawn", "Date of test", or the report/result date. Return it as ISO YYYY-MM-DD. NEVER guess, NEVER fabricate a date, and NEVER use today's date. If the document does not contain a definitive test date, set "collected_on" to null.
 - Do not invent values. Only report what is present in the document.`;
 
 const SCHEMA = {

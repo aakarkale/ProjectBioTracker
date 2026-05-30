@@ -1,12 +1,16 @@
+import { redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { TokenManager, type TokenRow } from "@/components/settings/TokenManager";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
+import { getProfile } from "@/lib/profile";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const user = await getUser();
+  const profile = await getProfile();
+  if (user && profile && !profile.onboarded) redirect("/onboarding");
   const supabase = await createClient();
 
   const { data } = await supabase
