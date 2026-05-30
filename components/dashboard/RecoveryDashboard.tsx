@@ -13,6 +13,7 @@ import { ActivityView } from "./charts/ActivityView";
 import { WalkingView } from "./charts/WalkingView";
 import { IntensityView } from "./charts/IntensityView";
 import { AppNav } from "@/components/AppNav";
+import { BiomarkerInsightDemo } from "@/components/landing/BiomarkerInsightDemo";
 
 type ViewId = "cardio" | "activity" | "walking" | "intensity";
 
@@ -29,11 +30,19 @@ type Props = {
   data: DailyMetric[];
   isSample?: boolean;
   userEmail?: string | null;
+  /** "landing" = generic public demo; "app" = personalised signed-in view. */
+  variant?: "landing" | "app";
 };
 
-export function RecoveryDashboard({ data, isSample = false, userEmail = null }: Props) {
+export function RecoveryDashboard({
+  data,
+  isSample = false,
+  userEmail = null,
+  variant = "app",
+}: Props) {
   const [view, setView] = useState<ViewId>("cardio");
   const [range, setRange] = useState<number>(90);
+  const isLanding = variant === "landing";
 
   const chartData = useMemo(
     () => buildChartData(data.slice(-range)),
@@ -71,7 +80,7 @@ export function RecoveryDashboard({ data, isSample = false, userEmail = null }: 
                   {DATA_WINDOW.label}
                 </p>
                 <h1 className="mt-2 font-serif text-3xl font-medium leading-tight sm:text-4xl">
-                  Aakar&apos;s Recovery
+                  {isLanding ? "Recovery" : "Aakar’s Recovery"}
                   <span className="block font-light italic text-accent">
                     dashboard.
                   </span>
@@ -87,8 +96,9 @@ export function RecoveryDashboard({ data, isSample = false, userEmail = null }: 
               </div>
             </div>
             <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-mute">
-              Post-viral recovery has reset your cardiovascular baseline.
-              Activity volume is the lever that still needs work.
+              {isLanding
+                ? "Apple Health metrics and lab biomarkers, unified in one editorial dashboard. This is a live demo with sample data — sign in to track your own."
+                : "Post-viral recovery has reset your cardiovascular baseline. Activity volume is the lever that still needs work."}
             </p>
           </header>
 
@@ -190,36 +200,41 @@ export function RecoveryDashboard({ data, isSample = false, userEmail = null }: 
             </div>
           </section>
 
-          {/* Insights */}
-          <section className="px-5 pb-10 sm:px-8">
-            <h2 className="mb-3 font-serif text-xl font-medium">Reading the signal</h2>
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-              <Insight
-                tag="WIN"
-                tagColor={palette.steps}
-                title="Cardiovascular system is recovering"
-                body="Resting HR averaged 82 bpm in late Jan / early Feb during the viral infection. It's back to 65 bpm over the last two weeks. HRV followed the same arc: low-20s ms then, high-30s/40s now."
-              />
-              <Insight
-                tag="GAP"
-                tagColor={palette.cal}
-                title="Exercise volume is the missing piece"
-                body="4.6 exercise minutes/day on average. For the 10kg weight goal and the HDL-25 / ALT-93 / visceral fat numbers, this is where the leverage sits. Zone 2 work 3x/week drives HDL up and liver fat down more reliably than any food swap."
-              />
-              <Insight
-                tag="NOTE"
-                tagColor={palette.walk}
-                title="Walking heart rate is trending down"
-                body="Average walking HR dropped from ~110 bpm in January to ~95 bpm recently. Your heart is doing the same work with less effort — aerobic fitness is improving even without formal workouts."
-              />
-              <Insight
-                tag="BLIND"
-                tagColor={palette.mute}
-                title="No weight data syncing"
-                body="Apple Health has no bodyMass entries in this window. A connected scale (Withings, Renpho) would close the loop between these metrics and your 89→78 kg goal."
-              />
-            </div>
-          </section>
+          {/* Landing: biomarker tiles with AI-insight tooltips.
+              App: editorial "Reading the signal" insights. */}
+          {isLanding ? (
+            <BiomarkerInsightDemo />
+          ) : (
+            <section className="px-5 pb-10 sm:px-8">
+              <h2 className="mb-3 font-serif text-xl font-medium">Reading the signal</h2>
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <Insight
+                  tag="WIN"
+                  tagColor={palette.steps}
+                  title="Cardiovascular system is recovering"
+                  body="Resting HR averaged 82 bpm in late Jan / early Feb during the viral infection. It's back to 65 bpm over the last two weeks. HRV followed the same arc: low-20s ms then, high-30s/40s now."
+                />
+                <Insight
+                  tag="GAP"
+                  tagColor={palette.cal}
+                  title="Exercise volume is the missing piece"
+                  body="4.6 exercise minutes/day on average. For the 10kg weight goal and the HDL-25 / ALT-93 / visceral fat numbers, this is where the leverage sits. Zone 2 work 3x/week drives HDL up and liver fat down more reliably than any food swap."
+                />
+                <Insight
+                  tag="NOTE"
+                  tagColor={palette.walk}
+                  title="Walking heart rate is trending down"
+                  body="Average walking HR dropped from ~110 bpm in January to ~95 bpm recently. Your heart is doing the same work with less effort — aerobic fitness is improving even without formal workouts."
+                />
+                <Insight
+                  tag="BLIND"
+                  tagColor={palette.mute}
+                  title="No weight data syncing"
+                  body="Apple Health has no bodyMass entries in this window. A connected scale (Withings, Renpho) would close the loop between these metrics and your 89→78 kg goal."
+                />
+              </div>
+            </section>
+          )}
 
           <footer className="border-t border-line px-5 pb-8 pt-4 sm:px-8">
             <p className="font-mono text-xs text-mute">

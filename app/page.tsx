@@ -15,6 +15,7 @@ export default async function Home() {
       data={metrics}
       isSample={isSample}
       userEmail={user?.email ?? null}
+      variant={user ? "app" : "landing"}
     />
   );
 }
