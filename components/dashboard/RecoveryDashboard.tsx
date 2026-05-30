@@ -80,11 +80,11 @@ export function RecoveryDashboard({
                   {DATA_WINDOW.label}
                 </p>
                 <h1 className="mt-2 font-serif text-3xl font-medium leading-tight sm:text-4xl">
-                  {isLanding ? "Recovery " : "Aakar’s Recovery"}
+                  {isLanding ? "Health " : "Aakar’s Recovery"}
                   <span
                     className={`font-light italic text-accent${isLanding ? "" : " block"}`}
                   >
-                    dashboard.
+                    {isLanding ? "Dashboard." : "dashboard."}
                   </span>
                 </h1>
               </div>
