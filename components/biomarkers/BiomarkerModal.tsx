@@ -19,6 +19,7 @@ export type BiomarkerGroup = {
   unit: string | null;
   status: "normal" | "borderline" | "critical" | "unknown";
   category: string | null;
+  reportTypes: string[];
   latestValue: number | null;
   referenceLow: number | null;
   referenceHigh: number | null;

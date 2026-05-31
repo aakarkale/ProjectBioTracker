@@ -90,9 +90,16 @@ function ReportItem({ report, readOnly }: { report: ReportRow; readOnly: boolean
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel p-4">
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-ink">
-          {report.title ?? report.file_name}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-sm font-medium text-ink">
+            {report.title ?? report.file_name}
+          </p>
+          {report.report_type && (
+            <span className="rounded-full border border-hrv/40 bg-hrv/10 px-2 py-0.5 font-mono text-[10px] text-hrv">
+              {report.report_type}
+            </span>
+          )}
+        </div>
         <p className="mt-0.5 font-mono text-xs text-mute">
           {needsDate ? (
             <span className="text-accent">⚠ set lab test date</span>

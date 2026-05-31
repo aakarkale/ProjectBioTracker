@@ -82,6 +82,13 @@ export type Biomarker = {
   status: "normal" | "borderline" | "critical" | "unknown";
   category: string | null;
   measured_on: string | null;
+  /** Type of the report this reading came from (e.g. "Lipid Panel"). */
+  report_type: string | null;
+};
+
+type ReportRel = { report_type: string | null };
+type BiomarkerRaw = Omit<Biomarker, "report_type"> & {
+  reports: ReportRel | ReportRel[] | null;
 };
 
 /** Biomarkers for the signed-in user (empty in demo mode). */
@@ -96,11 +103,14 @@ export async function getBiomarkers(): Promise<Biomarker[]> {
   const { data } = await supabase
     .from("biomarkers")
     .select(
-      "id, name, value, unit, reference_low, reference_high, status, category, measured_on"
+      "id, name, value, unit, reference_low, reference_high, status, category, measured_on, reports(report_type)"
     )
     .order("measured_on", { ascending: false, nullsFirst: false });
 
-  return (data as Biomarker[]) ?? [];
+  return ((data as unknown as BiomarkerRaw[]) ?? []).map(({ reports, ...b }) => {
+    const rel = Array.isArray(reports) ? reports[0] : reports;
+    return { ...b, report_type: rel?.report_type ?? null };
+  });
 }
 
 export type ReportRow = {
@@ -108,6 +118,7 @@ export type ReportRow = {
   title: string | null;
   file_name: string;
   collected_on: string | null; // the lab test (report) date
+  report_type: string | null;
   status: "pending" | "processing" | "done" | "error";
   error: string | null;
   created_at: string;
@@ -126,7 +137,7 @@ export async function getReports(): Promise<ReportRow[]> {
   const { data } = await supabase
     .from("reports")
     .select(
-      "id, title, file_name, collected_on, status, error, created_at, biomarkers(count)"
+      "id, title, file_name, collected_on, report_type, status, error, created_at, biomarkers(count)"
     )
     .order("created_at", { ascending: false });
 
@@ -139,6 +150,7 @@ export async function getReports(): Promise<ReportRow[]> {
     title: r.title,
     file_name: r.file_name,
     collected_on: r.collected_on,
+    report_type: r.report_type,
     status: r.status,
     error: r.error,
     created_at: r.created_at,

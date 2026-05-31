@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpDown, Check, ChevronDown } from "lucide-react";
+import { ArrowUpDown, Check, ChevronDown, ListFilter } from "lucide-react";
 import type { Biomarker } from "@/lib/queries";
 import { BiomarkerModal, type BiomarkerGroup } from "./BiomarkerModal";
 
@@ -44,11 +44,15 @@ function buildGroups(biomarkers: Biomarker[]): BiomarkerGroup[] {
       (a.measured_on ?? "").localeCompare(b.measured_on ?? "")
     );
     const latest = sorted[sorted.length - 1];
+    const reportTypes = [
+      ...new Set(rows.map((r) => r.report_type).filter((t): t is string => !!t)),
+    ];
     groups.push({
       name,
       unit: latest.unit,
       status: latest.status,
       category: latest.category,
+      reportTypes,
       latestValue: latest.value,
       referenceLow: latest.reference_low,
       referenceHigh: latest.reference_high,
@@ -148,6 +152,84 @@ function SortMenu({ value, onChange }: { value: SortId; onChange: (s: SortId) =>
   );
 }
 
+/** Single-select dropdown to filter biomarkers by their report type. */
+function TypeFilterMenu({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const items = ["all", ...options];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 font-mono text-xs text-mute transition-colors hover:text-ink"
+      >
+        <ListFilter size={12} />
+        Filter:{" "}
+        <span className="max-w-[10rem] truncate text-ink">
+          {value === "all" ? "All types" : value}
+        </span>
+        <ChevronDown size={12} className={open ? "rotate-180" : ""} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-50 mt-2 max-h-72 w-56 overflow-y-auto rounded-xl border border-line bg-panel shadow-xl"
+        >
+          <p className="px-3 pt-2 font-mono text-[10px] uppercase tracking-wider text-mute">
+            Report type
+          </p>
+          {items.map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="menuitemradio"
+              aria-checked={value === t}
+              onClick={() => {
+                onChange(t);
+                setOpen(false);
+              }}
+              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-panel2"
+            >
+              <span className="truncate">{t === "all" ? "All types" : t}</span>
+              {value === t && <Check size={14} className="shrink-0 text-accent" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BiomarkerView({
   biomarkers,
   aiEnabled,
@@ -156,10 +238,16 @@ export function BiomarkerView({
   aiEnabled: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortId>("status");
   const [selected, setSelected] = useState<BiomarkerGroup | null>(null);
 
   const groups = useMemo(() => buildGroups(biomarkers), [biomarkers]);
+
+  const reportTypes = useMemo(
+    () => [...new Set(groups.flatMap((g) => g.reportTypes))].sort(),
+    [groups]
+  );
 
   const counts = useMemo(() => {
     const c = { all: groups.length, critical: 0, borderline: 0, normal: 0 };
@@ -168,9 +256,12 @@ export function BiomarkerView({
   }, [groups]);
 
   const shown = useMemo(() => {
-    const filtered = filter === "all" ? groups : groups.filter((g) => g.status === filter);
+    let filtered = filter === "all" ? groups : groups.filter((g) => g.status === filter);
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((g) => g.reportTypes.includes(typeFilter));
+    }
     return sortGroups(filtered, sortBy);
-  }, [groups, filter, sortBy]);
+  }, [groups, filter, typeFilter, sortBy]);
 
   if (groups.length === 0) {
     return (
@@ -210,7 +301,16 @@ export function BiomarkerView({
             </button>
           ))}
         </div>
-        <SortMenu value={sortBy} onChange={setSortBy} />
+        <div className="flex items-center gap-2">
+          {reportTypes.length > 0 && (
+            <TypeFilterMenu
+              value={typeFilter}
+              options={reportTypes}
+              onChange={setTypeFilter}
+            />
+          )}
+          <SortMenu value={sortBy} onChange={setSortBy} />
+        </div>
       </div>
 
       {/* Biomarker tiles (one per marker — click for trend + AI insight) */}
