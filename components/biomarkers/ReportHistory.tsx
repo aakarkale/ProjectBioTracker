@@ -1,10 +1,132 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { ArrowUpDown, Check, ChevronDown, Pencil, Trash2, X } from "lucide-react";
 import type { ReportRow } from "@/lib/queries";
 import { deleteReport, updateReport } from "@/app/reports/actions";
+
+const SORTS = [
+  { id: "newest", label: "Date (New to Old)" },
+  { id: "oldest", label: "Date (Old to New)" },
+] as const;
+type SortId = (typeof SORTS)[number]["id"];
+
+/** Sort reports by their lab-test date (falling back to upload date). */
+function reportDateKey(r: ReportRow): string {
+  return r.collected_on ?? r.created_at?.slice(0, 10) ?? "";
+}
+
+function HistorySortMenu({
+  value,
+  onChange,
+}: {
+  value: SortId;
+  onChange: (s: SortId) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = SORTS.find((s) => s.id === value)!;
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 font-mono text-xs text-mute transition-colors hover:text-ink"
+      >
+        <ArrowUpDown size={12} />
+        <span className="text-ink">{current.label}</span>
+        <ChevronDown size={12} className={open ? "rotate-180" : ""} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-line bg-panel shadow-xl"
+        >
+          <p className="px-3 pt-2 font-mono text-[10px] uppercase tracking-wider text-mute">
+            Sort by
+          </p>
+          {SORTS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={value === s.id}
+              onClick={() => {
+                onChange(s.id);
+                setOpen(false);
+              }}
+              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-panel2"
+            >
+              {s.label}
+              {value === s.id && <Check size={14} className="text-accent" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ReportHistory({
+  reports,
+  readOnly = false,
+}: {
+  reports: ReportRow[];
+  readOnly?: boolean;
+}) {
+  const [sortBy, setSortBy] = useState<SortId>("newest");
+
+  const sorted = useMemo(() => {
+    const arr = [...reports];
+    arr.sort((a, b) =>
+      sortBy === "newest"
+        ? reportDateKey(b).localeCompare(reportDateKey(a))
+        : reportDateKey(a).localeCompare(reportDateKey(b))
+    );
+    return arr;
+  }, [reports, sortBy]);
+
+  if (reports.length === 0) return null;
+  return (
+    <section className="mt-8">
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <h2 className="font-serif text-xl font-medium">Lab report history</h2>
+        <HistorySortMenu value={sortBy} onChange={setSortBy} />
+      </div>
+      <p className="mb-4 text-xs text-mute">
+        {readOnly
+          ? "Reports behind this demo account, shown for reference."
+          : "Rename a report, set its lab-test date, or delete it (which also removes its biomarkers). Deleting cannot be undone."}
+      </p>
+      <div className="space-y-2">
+        {sorted.map((r) => (
+          <ReportItem key={r.id} report={r} readOnly={readOnly} />
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function ReportItem({ report, readOnly }: { report: ReportRow; readOnly: boolean }) {
   const router = useRouter();
@@ -158,27 +280,3 @@ function ReportItem({ report, readOnly }: { report: ReportRow; readOnly: boolean
   );
 }
 
-export function ReportHistory({
-  reports,
-  readOnly = false,
-}: {
-  reports: ReportRow[];
-  readOnly?: boolean;
-}) {
-  if (reports.length === 0) return null;
-  return (
-    <section className="mt-8">
-      <h2 className="mb-1 font-serif text-xl font-medium">Lab report history</h2>
-      <p className="mb-4 text-xs text-mute">
-        {readOnly
-          ? "Reports behind this demo account, shown for reference."
-          : "Rename a report, set its lab-test date, or delete it (which also removes its biomarkers). Deleting cannot be undone."}
-      </p>
-      <div className="space-y-2">
-        {reports.map((r) => (
-          <ReportItem key={r.id} report={r} readOnly={readOnly} />
-        ))}
-      </div>
-    </section>
-  );
-}
