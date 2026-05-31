@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpDown, Check, ChevronDown, Pencil, Trash2, X } from "lucide-react";
 import type { ReportRow } from "@/lib/queries";
+import { canonicalReportType } from "@/lib/report-type-catalog";
 import { deleteReport, updateReport } from "@/app/reports/actions";
 
 const SORTS = [
@@ -238,7 +239,7 @@ function ReportItem({ report, readOnly }: { report: ReportRow; readOnly: boolean
           </p>
           {report.report_type && (
             <span className="rounded-full border border-hrv/40 bg-hrv/10 px-2 py-0.5 font-mono text-[10px] text-hrv">
-              {report.report_type}
+              {canonicalReportType(report.report_type)}
             </span>
           )}
         </div>

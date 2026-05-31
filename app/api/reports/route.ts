@@ -6,6 +6,8 @@ import { isAnthropicConfigured } from "@/lib/anthropic/client";
 import { isDemoEmail } from "@/lib/demo";
 import { extractBiomarkers, type ExtractedBiomarker } from "@/lib/anthropic/extract";
 import { labelForKey, slugKey } from "@/lib/biomarker-catalog";
+import { canonicalReportType } from "@/lib/report-type-catalog";
+import { runReportSanityCheck } from "@/lib/report-sanity";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -177,21 +179,35 @@ export async function POST(request: NextRequest) {
         .filter((r) => r.id);
     }
 
+    // Collapse panel-name variants ("Lipid Profile" → "Lipid Panel") so the
+    // report-type filter never shows the same panel twice.
+    const reportType = canonicalReportType(result.report_type);
+
     await supabase
       .from("reports")
       .update({
         status: "done",
         collected_on: result.collected_on,
-        report_type: result.report_type,
+        report_type: reportType,
       })
       .eq("id", report.id);
+
+    // Sanity sweep: normalize all of this user's report types + re-key any
+    // biomarkers that deterministically match the catalog, so no duplicate
+    // filters or tiles can accumulate over time. Best-effort — never blocks
+    // the response.
+    try {
+      await runReportSanityCheck(supabase, user.id);
+    } catch {
+      /* non-fatal: the per-report write above already applied canonical types */
+    }
 
     return NextResponse.json({
       ok: true,
       reportId: report.id,
       status: "done",
       collected_on: result.collected_on,
-      report_type: result.report_type,
+      report_type: reportType,
       // No definitive lab-test date found — the UI should ask the user.
       needsDate: !result.collected_on,
       count: unique.length,
