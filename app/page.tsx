@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { RecoveryDashboard } from "@/components/dashboard/RecoveryDashboard";
 import { EmptyDashboard } from "@/components/dashboard/EmptyDashboard";
-import { getDailyMetrics } from "@/lib/queries";
+import { getBiomarkers, getDailyMetrics } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
 import { firstName, getProfile } from "@/lib/profile";
+import { buildHealthSummary } from "@/lib/analytics";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function Home() {
   ]);
 
   let displayName = "My";
+  let summary: string | undefined;
   if (user) {
     const profile = await getProfile();
     // New signed-in user → finish (or skip) onboarding first.
@@ -24,6 +26,10 @@ export default async function Home() {
     if (metrics.length === 0) {
       return <EmptyDashboard userEmail={user.email ?? null} displayName={displayName} />;
     }
+
+    // Personalised one-liner derived from their own data + connected labs.
+    const biomarkers = await getBiomarkers();
+    summary = buildHealthSummary(metrics, biomarkers.length);
   }
 
   return (
@@ -33,6 +39,7 @@ export default async function Home() {
       userEmail={user?.email ?? null}
       variant={user ? "app" : "landing"}
       displayName={displayName}
+      summary={summary}
     />
   );
 }
