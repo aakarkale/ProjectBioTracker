@@ -25,9 +25,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BioTracker — Recovery Dashboard",
+  title: "BioTracker — Unified Health Dashboard",
   description:
-    "Track cardiovascular recovery and lab biomarkers from Apple Health and medical reports.",
+    "Unify your wearable and phone health metrics with lab biomarkers in one recovery dashboard.",
 };
 
 export const viewport: Viewport = {
