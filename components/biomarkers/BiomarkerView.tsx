@@ -12,6 +12,10 @@ const STATUS_COLORS: Record<Biomarker["status"], string> = {
   unknown: "#71717a",
 };
 
+/** Soft status-tinted glow, matching the dashboard KPI cards. */
+export const statusGlow = (color: string) =>
+  `0 0 40px -10px ${color}40, inset 0 1px 0 rgba(255, 255, 255, 0.04)`;
+
 const FILTERS = ["all", "critical", "borderline", "normal"] as const;
 type Filter = (typeof FILTERS)[number];
 
@@ -326,6 +330,7 @@ export function BiomarkerView({
               key={g.name}
               type="button"
               onClick={() => setSelected(g)}
+              style={{ boxShadow: statusGlow(STATUS_COLORS[g.status]) }}
               className="rounded-2xl border border-line bg-panel p-4 text-left transition-colors hover:border-mute"
             >
               <div className="flex items-start justify-between gap-2">

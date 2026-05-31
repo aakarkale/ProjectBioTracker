@@ -210,7 +210,10 @@ export function BiomarkerInsightDemo() {
               {/* Tile */}
               <div
                 className="rounded-2xl border bg-panel p-4 transition-colors"
-                style={{ borderColor: isActive ? meta.color : "#27272a" }}
+                style={{
+                  borderColor: isActive ? meta.color : "#27272a",
+                  boxShadow: `0 0 40px -10px ${meta.color}40, inset 0 1px 0 rgba(255, 255, 255, 0.04)`,
+                }}
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-sm font-medium text-ink">{t.name}</span>
