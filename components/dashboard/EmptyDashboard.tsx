@@ -13,8 +13,8 @@ const STEPS = [
   {
     n: 1,
     icon: Activity,
-    title: "Connect Apple Health",
-    body: "Generate a sync token, then point the free Health Auto Export app (or an Apple Shortcut) at your private webhook. Your metrics flow in automatically — no app to install from us.",
+    title: "Connect your health data",
+    body: "Sync Apple Health or Android (Health Connect). We walk you through it step by step for your phone — set up once and your metrics flow in automatically.",
     href: "/settings",
     cta: "Set up sync",
     accent: "#10b981",

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
-import { TokenManager, type TokenRow } from "@/components/settings/TokenManager";
+import { type TokenRow } from "@/components/settings/TokenManager";
+import { ConnectWizard } from "@/components/settings/ConnectWizard";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { getProfile } from "@/lib/profile";
@@ -27,20 +28,20 @@ export default async function SettingsPage() {
     <PageShell
       userEmail={user?.email ?? null}
       eyebrow="Connect"
-      title="Apple Health"
-      intro="A website can't read Apple Health directly — HealthKit lives on your device. Generate a token below and point the Health Auto Export app (or an Apple Shortcut) at your personal webhook to sync metrics automatically."
+      title="Connect health data"
+      intro="Sync your Apple Health or Android (Health Connect) data into BioTracker. Answer a couple of quick questions and we'll show you the exact steps for your phone."
     >
       {isDemo ? (
         <DemoNotice>
           <span className="text-ink">You&apos;re exploring the demo.</span>{" "}
-          Connecting Apple Health is disabled here.{" "}
+          Connecting health data is disabled here.{" "}
           <a href="/login" className="text-hrv hover:underline">
             Sign in
           </a>{" "}
-          to generate your own sync token.
+          to set up your own sync.
         </DemoNotice>
       ) : (
-        <TokenManager tokens={tokens} />
+        <ConnectWizard tokens={tokens} />
       )}
     </PageShell>
   );

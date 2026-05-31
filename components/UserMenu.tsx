@@ -6,7 +6,7 @@ import { ChevronDown, HeartPulse, LogOut, Upload, UserRound } from "lucide-react
 
 const ITEMS = [
   { href: "/onboarding", label: "Profile & goals", icon: UserRound },
-  { href: "/settings", label: "Connect Apple Health", icon: HeartPulse },
+  { href: "/settings", label: "Connect health data", icon: HeartPulse },
   { href: "/upload", label: "Upload data", icon: Upload },
 ];
 
