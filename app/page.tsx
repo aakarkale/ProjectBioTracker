@@ -4,7 +4,6 @@ import { EmptyDashboard } from "@/components/dashboard/EmptyDashboard";
 import { getDailyMetrics } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
 import { firstName, getProfile } from "@/lib/profile";
-import { isDemoEmail } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
 

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Body must be JSON" }, { status: 400 });
   }
 
-  let rows: DailyMetricColumns[] = parseIngestPayload(body);
+  const rows: DailyMetricColumns[] = parseIngestPayload(body);
 
   if (rows.length === 0) {
     return NextResponse.json(
