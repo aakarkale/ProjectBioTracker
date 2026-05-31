@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -40,7 +41,16 @@ function LoginForm() {
   }
 
   return (
-    <main className="grain flex min-h-screen items-center justify-center bg-bg px-5">
+    <main className="grain relative flex min-h-screen items-center justify-center bg-bg px-5">
+      {/* Brand mark — back to the landing page */}
+      <Link
+        href="/"
+        aria-label="BioTracker home"
+        className="absolute left-5 top-5 font-mono text-sm uppercase tracking-widest text-accent transition-opacity hover:opacity-80 sm:left-8 sm:top-6"
+      >
+        Bio↗
+      </Link>
+
       <div className="w-full max-w-sm">
         <p className="font-mono text-xs uppercase tracking-widest text-mute">
           BioTracker
