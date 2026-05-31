@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpDown, Check, ChevronDown, ListFilter } from "lucide-react";
 import type { Biomarker } from "@/lib/queries";
+import { labelForKey, slugKey } from "@/lib/biomarker-catalog";
 import { BiomarkerModal, type BiomarkerGroup } from "./BiomarkerModal";
 
 const STATUS_COLORS: Record<Biomarker["status"], string> = {
@@ -34,16 +35,21 @@ const SORTS = [
 ] as const;
 type SortId = (typeof SORTS)[number]["id"];
 
-/** Collapse biomarker rows into one group per name (latest value + full series). */
+/**
+ * Collapse rows into one group per CANONICAL key (so synonyms — "Total
+ * Cholesterol" vs "Cholesterol", "LDL Calculated" vs "LDL Cholesterol" — merge
+ * into a single tile + trend). The display name is the catalog label.
+ */
 function buildGroups(biomarkers: Biomarker[]): BiomarkerGroup[] {
-  const byName = new Map<string, Biomarker[]>();
+  const byKey = new Map<string, Biomarker[]>();
   for (const b of biomarkers) {
-    const arr = byName.get(b.name) ?? [];
+    const k = b.canonical_key || slugKey(b.name);
+    const arr = byKey.get(k) ?? [];
     arr.push(b);
-    byName.set(b.name, arr);
+    byKey.set(k, arr);
   }
   const groups: BiomarkerGroup[] = [];
-  for (const [name, rows] of byName) {
+  for (const [key, rows] of byKey) {
     const sorted = [...rows].sort((a, b) =>
       (a.measured_on ?? "").localeCompare(b.measured_on ?? "")
     );
@@ -52,7 +58,7 @@ function buildGroups(biomarkers: Biomarker[]): BiomarkerGroup[] {
       ...new Set(rows.map((r) => r.report_type).filter((t): t is string => !!t)),
     ];
     groups.push({
-      name,
+      name: labelForKey(key, latest.name),
       unit: latest.unit,
       status: latest.status,
       category: latest.category,

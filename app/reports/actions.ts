@@ -7,6 +7,33 @@ import { isDemoEmail } from "@/lib/demo";
 type UpdateInput = { title?: string; reportDate?: string | null };
 
 /**
+ * Confirm a biomarker's canonical identity (the human-in-the-loop fallback):
+ * set its canonical_key to the user's choice and clear the review flag.
+ */
+export async function resolveBiomarkerCanonical(
+  id: string,
+  canonicalKey: string
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not signed in" };
+  if (isDemoEmail(user.email)) return { ok: false, error: "The demo is view-only." };
+  if (!canonicalKey) return { ok: false, error: "No selection" };
+
+  const { error } = await supabase
+    .from("biomarkers")
+    .update({ canonical_key: canonicalKey, needs_review: false })
+    .eq("id", id)
+    .eq("user_id", user.id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/reports");
+  return { ok: true };
+}
+
+/**
  * Rename a report and/or set its lab-test (report) date. When the date
  * changes, the date is propagated to all biomarkers extracted from it so
  * trends stay aligned.

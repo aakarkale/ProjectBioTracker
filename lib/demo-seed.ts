@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SAMPLE_DAILY_METRICS } from "@/lib/health-data";
 import { DEMO_EMAIL } from "@/lib/demo";
+import { matchCatalog, slugKey } from "@/lib/biomarker-catalog";
 
 export { DEMO_EMAIL };
 
@@ -135,6 +136,7 @@ export async function seedDemo(service: SupabaseClient, userId: string): Promise
             user_id: userId,
             report_id: rep.id,
             measured_on: p.date,
+            canonical_key: matchCatalog(mk.name)?.key ?? slugKey(mk.name),
             ...mk,
           }))
         );

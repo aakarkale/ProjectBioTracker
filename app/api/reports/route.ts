@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isAnthropicConfigured } from "@/lib/anthropic/client";
 import { isDemoEmail } from "@/lib/demo";
 import { extractBiomarkers, type ExtractedBiomarker } from "@/lib/anthropic/extract";
+import { labelForKey, slugKey } from "@/lib/biomarker-catalog";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -103,7 +104,23 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await extractBiomarkers(buffer, file.type, file.name);
+    // Reuse the user's existing canonical markers so the same analyte stays on
+    // one tile/trend across reports.
+    const { data: existingMarkers } = await supabase
+      .from("biomarkers")
+      .select("canonical_key, name")
+      .eq("user_id", user.id)
+      .not("canonical_key", "is", null);
+
+    const knownMap = new Map<string, string>();
+    for (const m of (existingMarkers as { canonical_key: string | null; name: string }[]) ?? []) {
+      if (m.canonical_key && !knownMap.has(m.canonical_key)) {
+        knownMap.set(m.canonical_key, labelForKey(m.canonical_key, m.name));
+      }
+    }
+    const knownMarkers = [...knownMap.entries()].map(([key, label]) => ({ key, label }));
+
+    const result = await extractBiomarkers(buffer, file.type, file.name, knownMarkers);
 
     // Dedupe within the report by biomarker name (keep first occurrence).
     const seen = new Set<string>();
@@ -114,6 +131,15 @@ export async function POST(request: NextRequest) {
       seen.add(key);
       unique.push(b);
     }
+
+    type ReviewItem = {
+      id: string;
+      name: string;
+      candidates: { key: string; label: string }[];
+      currentKey: string;
+      currentLabel: string;
+    };
+    let review: ReviewItem[] = [];
 
     if (unique.length > 0) {
       const rows = unique.map((b) => ({
@@ -126,10 +152,29 @@ export async function POST(request: NextRequest) {
         reference_high: b.reference_high,
         status: b.status,
         category: b.category,
+        canonical_key: b.canonical_key || slugKey(b.name),
+        needs_review: !b.confident,
         measured_on: result.collected_on,
       }));
-      const { error: bmError } = await supabase.from("biomarkers").insert(rows);
+      const { data: inserted, error: bmError } = await supabase
+        .from("biomarkers")
+        .insert(rows)
+        .select("id, name");
       if (bmError) throw new Error(bmError.message);
+
+      const idByName = new Map(
+        ((inserted as { id: string; name: string }[]) ?? []).map((r) => [r.name, r.id])
+      );
+      review = unique
+        .filter((b) => !b.confident)
+        .map((b) => ({
+          id: idByName.get(b.name) ?? "",
+          name: b.name,
+          candidates: Array.isArray(b.candidates) ? b.candidates : [],
+          currentKey: b.canonical_key || slugKey(b.name),
+          currentLabel: b.canonical_label || b.name,
+        }))
+        .filter((r) => r.id);
     }
 
     await supabase
@@ -150,6 +195,8 @@ export async function POST(request: NextRequest) {
       // No definitive lab-test date found — the UI should ask the user.
       needsDate: !result.collected_on,
       count: unique.length,
+      // Markers whose identity is uncertain — the UI asks the user to confirm.
+      review,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Extraction failed";
