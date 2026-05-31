@@ -119,23 +119,26 @@ function SortMenu({ value, onChange }: { value: SortId; onChange: (s: SortId) =>
   }, [open]);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative flex-1 sm:flex-none">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 font-mono text-xs text-mute transition-colors hover:text-ink"
+        className="flex w-full items-center justify-between gap-1.5 rounded-xl border border-line px-3 py-1.5 font-mono text-xs text-mute transition-colors hover:text-ink sm:w-auto sm:justify-start"
       >
-        <ArrowUpDown size={12} />
-        Sort: <span className="text-ink">{current.label}</span>
-        <ChevronDown size={12} className={open ? "rotate-180" : ""} />
+        <span className="flex items-center gap-1.5 truncate">
+          <ArrowUpDown size={12} className="shrink-0" />
+          <span className="text-mute">Sort:</span>{" "}
+          <span className="truncate text-ink">{current.label}</span>
+        </span>
+        <ChevronDown size={12} className={`shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-xl border border-line bg-panel shadow-xl"
+          className="absolute right-0 z-50 mt-2 w-48 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-line bg-panel shadow-xl"
         >
           <p className="px-3 pt-2 font-mono text-[10px] uppercase tracking-wider text-mute">
             Sort by
@@ -194,26 +197,28 @@ function TypeFilterMenu({
   const items = ["all", ...options];
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative flex-1 sm:flex-none">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 font-mono text-xs text-mute transition-colors hover:text-ink"
+        className="flex w-full items-center justify-between gap-1.5 rounded-xl border border-line px-3 py-1.5 font-mono text-xs text-mute transition-colors hover:text-ink sm:w-auto sm:justify-start"
       >
-        <ListFilter size={12} />
-        Filter:{" "}
-        <span className="max-w-[10rem] truncate text-ink">
-          {value === "all" ? "All types" : value}
+        <span className="flex items-center gap-1.5 truncate">
+          <ListFilter size={12} className="shrink-0" />
+          <span className="text-mute">Filter:</span>{" "}
+          <span className="max-w-[9rem] truncate text-ink">
+            {value === "all" ? "All types" : value}
+          </span>
         </span>
-        <ChevronDown size={12} className={open ? "rotate-180" : ""} />
+        <ChevronDown size={12} className={`shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 max-h-72 w-56 overflow-y-auto rounded-xl border border-line bg-panel shadow-xl"
+          className="absolute left-0 z-50 mt-2 max-h-72 w-60 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-line bg-panel shadow-xl"
         >
           <p className="px-3 pt-2 font-mono text-[10px] uppercase tracking-wider text-mute">
             Report type
@@ -249,7 +254,7 @@ export function BiomarkerView({
 }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<SortId>("status");
+  const [sortBy, setSortBy] = useState<SortId>("date");
   const [selected, setSelected] = useState<BiomarkerGroup | null>(null);
 
   const groups = useMemo(() => buildGroups(biomarkers), [biomarkers]);
@@ -293,8 +298,8 @@ export function BiomarkerView({
 
   return (
     <div className="space-y-6">
-      {/* Status filters + sort */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Controls: status pills, then Filter + Sort */}
+      <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
             <button
@@ -311,7 +316,7 @@ export function BiomarkerView({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 sm:justify-end">
           {reportTypes.length > 0 && (
             <TypeFilterMenu
               value={typeFilter}
