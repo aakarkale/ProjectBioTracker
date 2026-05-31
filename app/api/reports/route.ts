@@ -134,7 +134,11 @@ export async function POST(request: NextRequest) {
 
     await supabase
       .from("reports")
-      .update({ status: "done", collected_on: result.collected_on })
+      .update({
+        status: "done",
+        collected_on: result.collected_on,
+        report_type: result.report_type,
+      })
       .eq("id", report.id);
 
     return NextResponse.json({
@@ -142,6 +146,7 @@ export async function POST(request: NextRequest) {
       reportId: report.id,
       status: "done",
       collected_on: result.collected_on,
+      report_type: result.report_type,
       // No definitive lab-test date found — the UI should ask the user.
       needsDate: !result.collected_on,
       count: unique.length,

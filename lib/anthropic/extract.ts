@@ -1,4 +1,5 @@
 import { getAnthropic, MODEL } from "./client";
+import { BIOMARKER_CATEGORIES } from "@/lib/biomarker-categories";
 
 export type ExtractedBiomarker = {
   name: string;
@@ -12,19 +13,23 @@ export type ExtractedBiomarker = {
 
 export type ExtractionResult = {
   collected_on: string | null;
+  report_type: string | null;
   biomarkers: ExtractedBiomarker[];
 };
 
-const EXTRACTION_SYSTEM = `You extract structured lab biomarker data from medical reports.
+const EXTRACTION_SYSTEM = `You extract structured lab biomarker data from medical / lab reports of ANY type.
+
+Reports may be any of (non-exhaustive): Complete Blood Count (CBC), Basic or Comprehensive Metabolic Panel (BMP/CMP), Lipid Panel, Liver Function Tests, Kidney/Renal Panel, Urinalysis, HbA1c, Thyroid Panel, Cortisol/ACTH, Sex hormones, Vitamin/Iron studies, hs-CRP, Troponin/BNP, ApoB/Lp(a), ESR, ANA/RF/anti-CCP, immunoglobulins, coagulation (PT/INR, D-dimer), infectious-disease panels (Hepatitis, HIV, etc.), tumor markers (PSA, CA-125, CEA, AFP), hCG/prenatal panels, heavy metals, allergy/IgE panels, genetic/microbiome/advanced-lipid panels, and more.
 
 Rules:
-- Return every distinct lab measurement you can identify (e.g. Total Cholesterol, HDL, LDL, Triglycerides, HbA1c, Fasting Glucose, ALT, AST, TSH, Vitamin D, Ferritin, Creatinine, eGFR, CRP, etc.).
-- "value" is the numeric result only (no units). If a result is non-numeric or missing, use null.
-- "unit" is the measurement unit as printed (e.g. "mg/dL", "mmol/L", "%", "ng/mL"), or null.
-- "reference_low" / "reference_high" come from the printed reference range. If the range is one-sided (e.g. "<150"), set the missing bound to null. If absent, use null for both.
-- "status": "normal" if within range; "borderline" if just outside or flagged borderline; "critical" if substantially out of range or flagged H/L/critical; "unknown" if you cannot tell.
-- "category" is a short group label when evident (e.g. "Lipids", "Liver", "Thyroid", "Metabolic", "Kidney", "Vitamins", "Inflammation"), else null.
-- "collected_on" is the date the LAB TEST was performed — the specimen collection / draw date. Look for labels like "Collected on", "Specimen collected", "Collection date", "Drawn", "Date of test", or the report/result date. Return it as ISO YYYY-MM-DD. NEVER guess, NEVER fabricate a date, and NEVER use today's date. If the document does not contain a definitive test date, set "collected_on" to null.
+- Extract EVERY distinct lab measurement present — across all panels in the document, not just the common ones.
+- "value" is the numeric result only (no units). If a result is non-numeric (e.g. "Positive", "Negative", "Reactive"), use null (still include the marker, with the qualitative result reflected in status if possible).
+- "unit" is the measurement unit as printed (e.g. "mg/dL", "mmol/L", "%", "ng/mL", "10^3/uL"), or null.
+- "reference_low" / "reference_high" come from the printed reference range. One-sided ranges (e.g. "<150") set the missing bound to null. If absent, null for both.
+- "status": "normal" if within range; "borderline" if just outside or flagged borderline; "critical" if substantially out of range or flagged H/L/critical/abnormal; "unknown" if you cannot tell.
+- "category": assign EACH biomarker to exactly one of these canonical categories: ${BIOMARKER_CATEGORIES.join(", ")}. Use "Other" only if none fit.
+- "collected_on" is the date the LAB TEST was performed — the specimen collection / draw date. Look for "Collected on", "Specimen collected", "Collection date", "Drawn", "Date of test", or the report/result date. ISO YYYY-MM-DD. NEVER guess, NEVER fabricate, NEVER use today's date. If no definitive test date is present, use null.
+- "report_type": the overall name of this report/panel as a human-readable label (e.g. "Lipid Panel", "Comprehensive Metabolic Panel (CMP)", "Thyroid Panel", "Complete Blood Count (CBC)", "Urinalysis"). If it combines several panels, use "Comprehensive panel". If genuinely unclear, use "Lab report".
 - Do not invent values. Only report what is present in the document.`;
 
 const SCHEMA = {
@@ -32,6 +37,7 @@ const SCHEMA = {
   additionalProperties: false,
   properties: {
     collected_on: { anyOf: [{ type: "string" }, { type: "null" }] },
+    report_type: { anyOf: [{ type: "string" }, { type: "null" }] },
     biomarkers: {
       type: "array",
       items: {
@@ -61,7 +67,7 @@ const SCHEMA = {
       },
     },
   },
-  required: ["collected_on", "biomarkers"],
+  required: ["collected_on", "report_type", "biomarkers"],
 } as const;
 
 type DocBlock =
@@ -130,12 +136,13 @@ export async function extractBiomarkers(
 
   const text = response.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") {
-    return { collected_on: null, biomarkers: [] };
+    return { collected_on: null, report_type: null, biomarkers: [] };
   }
 
   const parsed = JSON.parse(text.text) as ExtractionResult;
   return {
     collected_on: parsed.collected_on ?? null,
+    report_type: parsed.report_type ?? null,
     biomarkers: Array.isArray(parsed.biomarkers) ? parsed.biomarkers : [],
   };
 }

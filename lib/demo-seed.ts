@@ -15,17 +15,24 @@ type Marker = {
 };
 
 // Two dated panels so biomarker trends have something to plot (Feb → May).
-const PANELS: { hash: string; title: string; date: string; markers: Marker[] }[] = [
+const PANELS: {
+  hash: string;
+  title: string;
+  date: string;
+  reportType: string;
+  markers: Marker[];
+}[] = [
   {
     hash: "demo-panel-a",
     title: "Lab panel — Feb 2026",
     date: "2026-02-04",
+    reportType: "Comprehensive panel",
     markers: [
       { name: "HDL Cholesterol", value: 28, unit: "mg/dL", reference_low: 40, reference_high: 60, status: "critical", category: "Lipids" },
       { name: "ALT", value: 88, unit: "U/L", reference_low: 7, reference_high: 56, status: "critical", category: "Liver" },
       { name: "LDL Cholesterol", value: 120, unit: "mg/dL", reference_low: null, reference_high: 100, status: "borderline", category: "Lipids" },
       { name: "Triglycerides", value: 170, unit: "mg/dL", reference_low: null, reference_high: 150, status: "borderline", category: "Lipids" },
-      { name: "Vitamin D", value: 21, unit: "ng/mL", reference_low: 30, reference_high: 100, status: "borderline", category: "Vitamins" },
+      { name: "Vitamin D", value: 21, unit: "ng/mL", reference_low: 30, reference_high: 100, status: "borderline", category: "Vitamins & Minerals" },
       { name: "HbA1c", value: 5.5, unit: "%", reference_low: null, reference_high: 5.7, status: "normal", category: "Metabolic" },
       { name: "Fasting Glucose", value: 95, unit: "mg/dL", reference_low: 70, reference_high: 99, status: "normal", category: "Metabolic" },
       { name: "TSH", value: 2.2, unit: "mIU/L", reference_low: 0.4, reference_high: 4.0, status: "normal", category: "Thyroid" },
@@ -35,12 +42,13 @@ const PANELS: { hash: string; title: string; date: string; markers: Marker[] }[]
     hash: "demo-panel-b",
     title: "Lab panel — May 2026",
     date: "2026-05-04",
+    reportType: "Comprehensive panel",
     markers: [
       { name: "HDL Cholesterol", value: 34, unit: "mg/dL", reference_low: 40, reference_high: 60, status: "borderline", category: "Lipids" },
       { name: "ALT", value: 58, unit: "U/L", reference_low: 7, reference_high: 56, status: "borderline", category: "Liver" },
       { name: "LDL Cholesterol", value: 108, unit: "mg/dL", reference_low: null, reference_high: 100, status: "borderline", category: "Lipids" },
       { name: "Triglycerides", value: 148, unit: "mg/dL", reference_low: null, reference_high: 150, status: "normal", category: "Lipids" },
-      { name: "Vitamin D", value: 28, unit: "ng/mL", reference_low: 30, reference_high: 100, status: "borderline", category: "Vitamins" },
+      { name: "Vitamin D", value: 28, unit: "ng/mL", reference_low: 30, reference_high: 100, status: "borderline", category: "Vitamins & Minerals" },
       { name: "HbA1c", value: 5.4, unit: "%", reference_low: null, reference_high: 5.7, status: "normal", category: "Metabolic" },
       { name: "Fasting Glucose", value: 92, unit: "mg/dL", reference_low: 70, reference_high: 99, status: "normal", category: "Metabolic" },
       { name: "TSH", value: 2.1, unit: "mIU/L", reference_low: 0.4, reference_high: 4.0, status: "normal", category: "Thyroid" },
@@ -117,6 +125,7 @@ export async function seedDemo(service: SupabaseClient, userId: string): Promise
           content_hash: p.hash,
           status: "done",
           collected_on: p.date,
+          report_type: p.reportType,
         })
         .select("id")
         .single();
