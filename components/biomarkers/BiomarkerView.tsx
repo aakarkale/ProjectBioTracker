@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpDown, Check, ChevronDown, ListFilter } from "lucide-react";
 import type { Biomarker } from "@/lib/queries";
 import { labelForKey, slugKey } from "@/lib/biomarker-catalog";
+import { canonicalReportType } from "@/lib/report-type-catalog";
 import { BiomarkerModal, type BiomarkerGroup } from "./BiomarkerModal";
 
 const STATUS_COLORS: Record<Biomarker["status"], string> = {
@@ -54,8 +55,13 @@ function buildGroups(biomarkers: Biomarker[]): BiomarkerGroup[] {
       (a.measured_on ?? "").localeCompare(b.measured_on ?? "")
     );
     const latest = sorted[sorted.length - 1];
+    // Canonicalize so "Lipid Profile" and "Lipid Panel" never both appear.
     const reportTypes = [
-      ...new Set(rows.map((r) => r.report_type).filter((t): t is string => !!t)),
+      ...new Set(
+        rows
+          .map((r) => canonicalReportType(r.report_type))
+          .filter((t): t is string => !!t)
+      ),
     ];
     groups.push({
       name: labelForKey(key, latest.name),

@@ -1,6 +1,7 @@
 import { getAnthropic, MODEL } from "./client";
 import { BIOMARKER_CATEGORIES } from "@/lib/biomarker-categories";
 import { catalogForPrompt } from "@/lib/biomarker-catalog";
+import { reportTypesForPrompt } from "@/lib/report-type-catalog";
 
 export type CanonicalCandidate = { key: string; label: string };
 
@@ -41,7 +42,7 @@ Per-field rules:
 - "status": "normal" in range; "borderline" just outside / flagged borderline; "critical" substantially out / flagged H/L/critical; else "unknown".
 - "category": exactly one of: ${BIOMARKER_CATEGORIES.join(", ")}. "Other" only if none fit.
 - "collected_on": the LAB TEST / specimen-collection date as ISO YYYY-MM-DD. NEVER guess or use today's date. If none is present, null.
-- "report_type": human-readable panel name (e.g. "Lipid Panel", "Comprehensive Metabolic Panel (CMP)"). Combined panels → "Comprehensive panel"; unclear → "Lab report".
+- "report_type": human-readable panel name. PREFER one of these canonical labels verbatim when it fits (this keeps the filter list from fragmenting): ${reportTypesForPrompt()}. Use the EXACT spelling above — e.g. a "Lipid Profile" is a "Lipid Panel". If none fit, use a concise standard panel name. Combined panels → "Comprehensive panel"; unclear → "Lab report".
 
 CANONICAL IDENTITY — the most important part. Labs print the same analyte many ways; map each biomarker to a stable identity so the same analyte always merges:
 - If the biomarker is the same analyte as a CATALOG entry below (ignoring wording, case, punctuation, and qualifiers like "Calculated"), set "canonical_key" to that catalog key and "canonical_label" to its label. Examples: "Total Cholesterol" and "Cholesterol" → total_cholesterol; "LDL Calculated" and "LDL-C" → ldl_cholesterol; "HDL cholesterol" → hdl_cholesterol.
