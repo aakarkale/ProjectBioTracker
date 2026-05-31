@@ -2,13 +2,14 @@ import Papa from "papaparse";
 import {
   mergeByDay,
   normalizeDailyRow,
-  parseHealthAutoExport,
+  parseIngestPayload,
   type DailyMetricColumns,
 } from "@/lib/ingest";
 
 /**
  * Parse an uploaded daily-metrics file into normalised rows.
- * Accepts CSV, a JSON array of rows, or Health Auto Export JSON.
+ * Accepts CSV, a JSON array of rows, Health Auto Export JSON (iOS), or
+ * Health Connect JSON (Android).
  */
 export function parseMetricsFile(
   content: string,
@@ -30,20 +31,7 @@ export function parseMetricsJson(content: string): DailyMetricColumns[] {
     throw new Error("Invalid JSON file.");
   }
 
-  // Health Auto Export shape: { data: { metrics: [...] } }
-  if (data && typeof data === "object" && "data" in data) {
-    const rows = parseHealthAutoExport(data);
-    if (rows.length) return mergeByDay(rows);
-  }
-
-  // Plain array of row objects.
-  const arr = Array.isArray(data) ? data : [];
-  const rows = arr
-    .filter((r): r is Record<string, unknown> => !!r && typeof r === "object")
-    .map(normalizeDailyRow)
-    .filter((r): r is DailyMetricColumns => r !== null);
-
-  return mergeByDay(rows);
+  return parseIngestPayload(data);
 }
 
 export function parseMetricsCsv(content: string): DailyMetricColumns[] {

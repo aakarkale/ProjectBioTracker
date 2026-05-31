@@ -4,7 +4,6 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Check,
   KeyRound,
   RefreshCw,
   Smartphone,
