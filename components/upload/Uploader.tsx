@@ -2,8 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, CircleAlert, Copy, Loader2 } from "lucide-react";
-import { updateReport } from "@/app/reports/actions";
+import { Check, CircleAlert, Copy, Loader2, Sparkles } from "lucide-react";
+import { resolveBiomarkerCanonical, updateReport } from "@/app/reports/actions";
 
 /** Max files accepted in a single batch (uploaded sequentially). */
 const MAX_FILES = 20;
@@ -17,6 +17,61 @@ type FileResult = {
   reportId?: string;
   needsDate?: boolean;
 };
+
+type ReviewCandidate = { key: string; label: string };
+type ReviewItem = {
+  id: string;
+  name: string;
+  candidates: ReviewCandidate[];
+  currentKey: string;
+  currentLabel: string;
+};
+
+/** Human-in-the-loop fallback: confirm an uncertain marker's identity. */
+function ConfirmMarker({ item }: { item: ReviewItem }) {
+  const router = useRouter();
+  const [done, setDone] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+
+  function choose(key: string, label: string) {
+    start(async () => {
+      await resolveBiomarkerCanonical(item.id, key);
+      setDone(label);
+      router.refresh();
+    });
+  }
+
+  return (
+    <li className="rounded-lg border border-line bg-panel px-3 py-2">
+      <p className="font-mono text-xs text-ink">{item.name}</p>
+      {done ? (
+        <p className="mt-1 font-mono text-xs text-steps">saved as {done} ✓</p>
+      ) : (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {item.candidates.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              disabled={pending}
+              onClick={() => choose(c.key, c.label)}
+              className="rounded-full border border-hrv/50 px-2.5 py-1 font-mono text-xs text-hrv transition-colors hover:bg-hrv/10 disabled:opacity-50"
+            >
+              {c.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => choose(item.currentKey, item.currentLabel)}
+            className="rounded-full border border-line px-2.5 py-1 font-mono text-xs text-mute transition-colors hover:text-ink disabled:opacity-50"
+          >
+            Keep as &ldquo;{item.currentLabel}&rdquo;
+          </button>
+        </div>
+      )}
+    </li>
+  );
+}
 
 /** Inline date prompt for a report whose lab-test date wasn't detected. */
 function DateFix({ reportId }: { reportId: string }) {
@@ -72,12 +127,14 @@ function UploadCard({
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [results, setResults] = useState<FileResult[]>([]);
+  const [review, setReview] = useState<ReviewItem[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function onPick(list: FileList | null) {
     setError(null);
     setResults([]);
+    setReview([]);
     const picked = list ? Array.from(list) : [];
     if (picked.length > MAX_FILES) {
       setError(`Up to ${MAX_FILES} files at a time — taking the first ${MAX_FILES}.`);
@@ -103,6 +160,7 @@ function UploadCard({
     }
     setBusy(true);
     setError(null);
+    setReview([]);
     const initial: FileResult[] = files.map((f) => ({
       name: f.name,
       state: "queued",
@@ -141,6 +199,9 @@ function UploadCard({
               : r
           )
         );
+        if (Array.isArray(data.review) && data.review.length > 0) {
+          setReview((prev) => [...prev, ...(data.review as ReviewItem[])]);
+        }
       } catch {
         setResults((prev) =>
           prev.map((r, idx) =>
@@ -216,6 +277,23 @@ function UploadCard({
             </li>
           ))}
         </ul>
+      )}
+
+      {review.length > 0 && (
+        <div className="mt-4 rounded-xl border border-hrv/40 bg-hrv/5 p-3">
+          <p className="mb-1 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-hrv">
+            <Sparkles size={12} /> Confirm a few markers
+          </p>
+          <p className="mb-2 text-xs text-mute">
+            We weren&apos;t fully sure what these are. Pick the right match so
+            readings stay on one trend.
+          </p>
+          <ul className="space-y-2">
+            {review.map((it) => (
+              <ConfirmMarker key={it.id} item={it} />
+            ))}
+          </ul>
+        </div>
       )}
     </form>
   );

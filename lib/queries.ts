@@ -82,6 +82,8 @@ export type Biomarker = {
   status: "normal" | "borderline" | "critical" | "unknown";
   category: string | null;
   measured_on: string | null;
+  /** Stable identity used for grouping/trends (synonyms share a key). */
+  canonical_key: string | null;
   /** Type of the report this reading came from (e.g. "Lipid Panel"). */
   report_type: string | null;
 };
@@ -103,7 +105,7 @@ export async function getBiomarkers(): Promise<Biomarker[]> {
   const { data } = await supabase
     .from("biomarkers")
     .select(
-      "id, name, value, unit, reference_low, reference_high, status, category, measured_on, reports(report_type)"
+      "id, name, value, unit, reference_low, reference_high, status, category, measured_on, canonical_key, reports(report_type)"
     )
     .order("measured_on", { ascending: false, nullsFirst: false });
 
