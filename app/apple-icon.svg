@@ -1,5 +1,4 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="180" height="180" rx="40" fill="#0a0a0b"/>
-  <text x="34" y="128" font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace" font-size="96" font-weight="700" fill="#f59e0b">B</text>
-  <path d="M110 110 L142 78 M118 75 H146 V103" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="90" y="118" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace" font-size="62" font-weight="700" letter-spacing="-2" fill="#f59e0b">Bio↗</text>
 </svg>
