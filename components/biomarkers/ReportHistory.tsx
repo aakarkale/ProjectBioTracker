@@ -17,6 +17,26 @@ function reportDateKey(r: ReportRow): string {
   return r.collected_on ?? r.created_at?.slice(0, 10) ?? "";
 }
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function ordinal(d: number): string {
+  const v = d % 100;
+  const suffix = v >= 11 && v <= 13 ? "th" : ["th", "st", "nd", "rd"][d % 10] ?? "th";
+  return `${d}${suffix}`;
+}
+
+/** "2026-05-04" → "May 4th, 2026". */
+function formatTestDate(iso: string | null): string {
+  if (!iso) return "—";
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  const [, y, mo, da] = m;
+  return `${MONTHS[Number(mo) - 1]} ${ordinal(Number(da))}, ${y}`;
+}
+
 function HistorySortMenu({
   value,
   onChange,
@@ -226,7 +246,7 @@ function ReportItem({ report, readOnly }: { report: ReportRow; readOnly: boolean
           {needsDate ? (
             <span className="text-accent">⚠ set lab test date</span>
           ) : (
-            <>test {report.collected_on}</>
+            <>Test Date: {formatTestDate(report.collected_on)}</>
           )}{" "}
           · {report.biomarker_count} biomarkers
           {report.status === "error" ? " · error" : ""}
