@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react";
 import { Activity, Heart, TrendingUp, Zap } from "lucide-react";
 import type { DailyMetric } from "@/lib/health-data";
-import { DATA_WINDOW } from "@/lib/health-data";
-import { buildChartData, buildKpis } from "@/lib/analytics";
+import { buildChartData, buildKpis, dataWindow } from "@/lib/analytics";
 import { palette } from "@/lib/theme";
 import { KpiCard } from "./KpiCard";
 import { Insight } from "./Insight";
@@ -44,6 +43,8 @@ type Props = {
   variant?: "landing" | "app";
   /** First name for the signed-in greeting (app variant). */
   displayName?: string;
+  /** Personalised one-liner for the signed-in header (app variant). */
+  summary?: string;
   /** Demo account → show guided "what this means" tooltips. */
   demo?: boolean;
 };
@@ -54,6 +55,7 @@ export function RecoveryDashboard({
   userEmail = null,
   variant = "app",
   displayName = "My",
+  summary,
   demo = false,
 }: Props) {
   const [view, setView] = useState<ViewId>("cardio");
@@ -65,6 +67,7 @@ export function RecoveryDashboard({
     [data, range]
   );
   const kpi = useMemo(() => buildKpis(data), [data]);
+  const win = useMemo(() => dataWindow(data), [data]);
 
   return (
     <div className="min-h-screen w-full bg-bg text-ink">
@@ -76,7 +79,7 @@ export function RecoveryDashboard({
             <div className="border-b border-line bg-panel/40 px-5 py-2 sm:px-8">
               <p className="font-mono text-xs text-mute">
                 {userEmail
-                  ? "Showing sample data — upload metrics or connect Apple Health to see your own."
+                  ? "Showing sample data — connect your health data or upload metrics to see your own."
                   : "Demo mode — sample data. "}
                 {!userEmail && (
                   <a href="/login" className="text-accent hover:underline">
@@ -93,26 +96,26 @@ export function RecoveryDashboard({
             <div className="mb-2 flex items-start justify-between">
               <div>
                 <p className="font-mono text-xs uppercase tracking-widest text-mute">
-                  {DATA_WINDOW.label}
+                  {win ? `${win.days}-day window` : "Health metrics"}
                 </p>
                 <h1 className="mt-2 font-serif text-3xl font-medium leading-tight sm:text-4xl">
                   {isLanding ? "Health " : `${displayName}’s Health `}
                   <span className="font-light italic text-accent">Dashboard.</span>
                 </h1>
               </div>
-              <div className="text-right">
-                <p className="font-mono text-xs text-mute">
-                  {DATA_WINDOW.start} → {DATA_WINDOW.end}
-                </p>
-                <p className="mt-1 font-mono text-xs text-mute">
-                  {DATA_WINDOW.year}
-                </p>
-              </div>
+              {win && (
+                <div className="text-right">
+                  <p className="font-mono text-xs text-mute">
+                    {win.start} → {win.end}
+                  </p>
+                </div>
+              )}
             </div>
             <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-mute">
               {isLanding
-                ? "Apple Health metrics and lab biomarkers, unified in one editorial dashboard. This is a live demo with sample data — sign in to track your own."
-                : "Post-viral recovery has reset your cardiovascular baseline. Activity volume is the lever that still needs work."}
+                ? "Your wearable and phone health metrics, plus lab biomarkers, unified in one editorial dashboard. This is a live demo with sample data — sign in to track your own."
+                : summary ??
+                  "Your recovery, activity, and lab biomarkers, unified in one dashboard."}
             </p>
           </header>
 
@@ -262,8 +265,9 @@ export function RecoveryDashboard({
 
           <footer className="border-t border-line px-5 pb-8 pt-4 sm:px-8">
             <p className="font-mono text-xs text-mute">
-              Data from Apple Health · Context from lab results dated Feb 2026 ·
-              Not medical advice
+              {isLanding
+                ? "Daily metrics from Apple Health or Android · Context from lab results · Not medical advice"
+                : "Private to your account · Not medical advice"}
             </p>
           </footer>
         </div>
