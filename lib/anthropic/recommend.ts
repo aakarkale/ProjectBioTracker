@@ -10,10 +10,11 @@ export type Recommendation = {
   related_markers: string[];
 };
 
-const RECOMMEND_SYSTEM = `You are a careful health-data assistant. Given recent Apple Health activity metrics and out-of-range lab biomarkers, produce specific, evidence-aligned lifestyle recommendations.
+const RECOMMEND_SYSTEM = `You are a careful health-data assistant. Given a person's recent activity metrics, out-of-range lab biomarkers, and their lifestyle profile, produce specific, evidence-aligned lifestyle recommendations.
 
 Guidelines:
 - Focus on the biomarkers that are borderline or critical, and on the activity gaps.
+- Personalise to the lifestyle profile when present: tailor advice to their diet, activity level, sleep, stress, smoking/alcohol/caffeine habits, diagnosed conditions, family history, and medications. Don't suggest what they already do; do address the risk factors their answers reveal.
 - Each recommendation must be concrete and actionable (specific behaviours, frequencies, targets) — not generic ("eat healthy").
 - Tie recommendations to the data you were given via related_markers.
 - Prioritise: "high" for critical markers or large gaps, "medium" for borderline, "low" for maintenance.
@@ -78,12 +79,16 @@ function summarise(biomarkers: Biomarker[], kpi: KpiSummary): string {
 export async function generateRecommendations(
   biomarkers: Biomarker[],
   kpi: KpiSummary,
-  profileDescription = ""
+  profileDescription = "",
+  questionnaireDescription = ""
 ): Promise<Recommendation[]> {
   const client = getAnthropic();
 
   const userContent =
     (profileDescription ? `Person: ${profileDescription}\n\n` : "") +
+    (questionnaireDescription
+      ? `Lifestyle profile:\n${questionnaireDescription}\n\n`
+      : "") +
     summarise(biomarkers, kpi);
 
   const response = await client.messages.create({

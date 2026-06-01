@@ -56,3 +56,13 @@ body {
 .recharts-surface:focus {
   outline: none;
 }
+
+/* Hide scrollbars on horizontally-scrollable strips (e.g. the mobile nav)
+   while keeping them scrollable via touch/trackpad. */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/WebKit */
+}

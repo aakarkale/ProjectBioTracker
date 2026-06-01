@@ -21,7 +21,7 @@ export function AppNav({ userEmail }: { userEmail: string | null }) {
 
   return (
     <nav className="flex items-center justify-between gap-3 border-b border-line px-5 py-3 sm:px-8">
-      <div className="flex items-center gap-4 overflow-x-auto">
+      <div className="no-scrollbar flex items-center gap-4 overflow-x-auto">
         <span className="font-mono text-xs uppercase tracking-widest text-accent">
           Bio↗
         </span>

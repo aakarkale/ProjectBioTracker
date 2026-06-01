@@ -83,6 +83,19 @@ export async function seedDemo(service: SupabaseClient, userId: string): Promise
       weight_kg: 82,
       goals: "Improve cardio fitness, Lose weight — post-viral recovery",
       onboarded: true,
+      health_questionnaire: {
+        activity_level: "Lightly active (1–2 days/week)",
+        diet: "Omnivore (balanced)",
+        sleep_hours: "5–6 hours",
+        sleep_quality: "Fair",
+        stress: "High",
+        smoking: "Never",
+        alcohol: "Occasionally (1–2 drinks/week)",
+        caffeine: "2–3 cups/day",
+        conditions: ["Fatty liver", "High cholesterol"],
+        family_history: ["Heart disease", "Diabetes"],
+        medications: ["Vitamins / supplements"],
+      },
     },
     { onConflict: "id" }
   );

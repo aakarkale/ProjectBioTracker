@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { DEMO_EMAIL } from "@/lib/demo";
+import type { QuestionnaireAnswers } from "@/lib/questionnaire";
 
 export type Profile = {
   full_name: string | null;
@@ -10,6 +11,7 @@ export type Profile = {
   weight_kg: number | null;
   goals: string | null;
   onboarded: boolean;
+  health_questionnaire: QuestionnaireAnswers | null;
 };
 
 /** The signed-in user's health profile, or null if signed out / unconfigured. */
@@ -23,7 +25,9 @@ export async function getProfile(): Promise<Profile | null> {
 
   const { data } = await supabase
     .from("profiles")
-    .select("full_name, date_of_birth, sex, height_cm, weight_kg, goals, onboarded")
+    .select(
+      "full_name, date_of_birth, sex, height_cm, weight_kg, goals, onboarded, health_questionnaire"
+    )
     .eq("id", user.id)
     .maybeSingle();
 
@@ -35,6 +39,7 @@ export async function getProfile(): Promise<Profile | null> {
     weight_kg: null,
     goals: null,
     onboarded: false,
+    health_questionnaire: null,
   };
 }
 
