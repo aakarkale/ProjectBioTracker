@@ -5,6 +5,7 @@ import { isAnthropicConfigured } from "@/lib/anthropic/client";
 import { generateRecommendations } from "@/lib/anthropic/recommend";
 import { getBiomarkers, getDailyMetrics } from "@/lib/queries";
 import { getProfile, describeProfile } from "@/lib/profile";
+import { describeQuestionnaire } from "@/lib/questionnaire";
 import { buildKpis } from "@/lib/analytics";
 
 export const runtime = "nodejs";
@@ -46,7 +47,8 @@ export async function POST() {
     const recommendations = await generateRecommendations(
       biomarkers,
       kpi,
-      describeProfile(profile)
+      describeProfile(profile),
+      describeQuestionnaire(profile?.health_questionnaire)
     );
     return NextResponse.json({ ok: true, recommendations });
   } catch (e) {

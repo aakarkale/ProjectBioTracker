@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
-import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
+import { QuestionnaireForm } from "@/components/questionnaire/QuestionnaireForm";
 import { DemoNotice } from "@/components/DemoNotice";
 import { getUser } from "@/lib/auth";
 import { getProfile } from "@/lib/profile";
@@ -8,33 +8,25 @@ import { isDemoEmail } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
 
-export default async function OnboardingPage() {
+export default async function QuestionnairePage() {
   const user = await getUser();
-  if (!user) redirect("/login?next=/onboarding");
+  if (!user) redirect("/login?next=/questionnaire");
   const isDemo = isDemoEmail(user.email);
 
-  const profile = (await getProfile()) ?? {
-    full_name: null,
-    date_of_birth: null,
-    sex: null,
-    height_cm: null,
-    weight_kg: null,
-    goals: null,
-    onboarded: false,
-    health_questionnaire: null,
-  };
+  const profile = await getProfile();
+  if (profile && !profile.onboarded) redirect("/onboarding");
 
   return (
     <PageShell
       userEmail={user.email ?? null}
-      eyebrow="Welcome"
-      title="Tell us about you"
-      intro="A few quick details so your biomarker insights and recommendations are personalised to you. Takes under a minute — you can skip and finish later."
+      eyebrow="Health questionnaire"
+      title="A few lifestyle questions"
+      intro="Optional, but it makes your AI recommendations much more accurate. Every question is multiple-choice — tap through it in under a minute."
     >
       {isDemo && (
         <div className="mb-5">
           <DemoNotice>
-            <span className="text-ink">Demo profile.</span> These details are
+            <span className="text-ink">Demo questionnaire.</span> Answers are
             view-only here.{" "}
             <a href="/login" className="text-hrv hover:underline">
               Sign in
@@ -43,7 +35,10 @@ export default async function OnboardingPage() {
           </DemoNotice>
         </div>
       )}
-      <OnboardingForm profile={profile} readOnly={isDemo} />
+      <QuestionnaireForm
+        initial={profile?.health_questionnaire ?? null}
+        readOnly={isDemo}
+      />
     </PageShell>
   );
 }
