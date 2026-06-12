@@ -87,6 +87,24 @@ Names only — never commit values. See `.env.example` / `DEPLOY.md`.
 The app degrades gracefully: no Anthropic key → extraction/AI disabled but
 upload/dashboard work; no service-role key → webhook 503 but manual upload works.
 
+### Supabase ↔ Vercel integration (handle with care)
+
+The Supabase env vars above are set **manually** in Vercel and already work.
+Do not change how they're provisioned without an explicit ask.
+
+- **Don't** install the integration from the **Vercel** Marketplace side — its
+  default provisions a **new, empty** Supabase project billed via Vercel,
+  bypassing `biotracker` (`fuaclfgoyprcotauzuae`, org AlignMoney).
+- If linking is wanted, do it from **Supabase → Integrations → Vercel** and
+  **link the existing** `biotracker` ↔ `bio-tracker` projects. Never "create new".
+- The integration **manages/overwrites** `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` across all envs and
+  redeploys. After any change: diff these three in Vercel (watch for new-format
+  `sb_publishable_…`/`sb_secret_…` keys replacing the legacy JWTs the code reads
+  by name), re-check Supabase → Auth → URL Configuration still has the prod +
+  preview redirect URLs, and verify login + a dashboard load on a **preview**
+  deploy before trusting production.
+
 ## Domain constraints (don't relitigate)
 
 - **Apple Health has no web API.** HealthKit is device-only. Sync is via a
